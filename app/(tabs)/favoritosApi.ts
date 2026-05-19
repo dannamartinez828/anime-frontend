@@ -1,5 +1,5 @@
 const BASE_URL =
-  "https://anime-backend-production-f190.up.railway.app";
+  "https://anime-backend-bbwl.onrender.com";
 
 // =======================================
 // OBTENER FAVORITOS
