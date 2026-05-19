@@ -1,5 +1,5 @@
 const BASE_URL =
-  "https://anime-backend-bbwl.onrender.com";
+  process.env.EXPO_PUBLIC_API_URL;
 
 export async function login(email: string, password: string) {
 

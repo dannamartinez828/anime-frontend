@@ -1,14 +1,15 @@
-const APIS: Record<string, string> = {
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL;
 
+const APIS: Record<string, string> = {
   saintseiya:
-    "https://anime-backend-bbwl.onrender.com/saintseiya/personajes",
+    `${BASE_URL}/saintseiya/personajes`,
 
   hunterxhunter:
-    "https://anime-backend-bbwl.onrender.com/hunterxhunter/personajes",
+    `${BASE_URL}/hunterxhunter/personajes`,
 
   onepiece:
-    "https://anime-backend-bbwl.onrender.com/onepiece/personajes",
-
+    `${BASE_URL}/onepiece/personajes`,
 };
 
 export async function buscarPersonaje(
