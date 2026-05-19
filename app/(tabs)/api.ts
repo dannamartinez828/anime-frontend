@@ -1,0 +1,58 @@
+const APIS: Record<string, string> = {
+
+  saintseiya:
+    "https://anime-backend-production-f190.up.railway.app/saintseiya/personajes",
+
+  hunterxhunter:
+    "https://anime-backend-production-f190.up.railway.app/hunterxhunter/personajes",
+
+  onepiece:
+    "https://anime-backend-production-f190.up.railway.app/onepiece/personajes",
+
+};
+
+export async function buscarPersonaje(
+  anime: string,
+  nombre: string
+) {
+
+  try {
+
+    const baseUrl = APIS[anime];
+
+    if (!baseUrl) {
+
+      throw new Error(
+        "Anime no válido"
+      );
+
+    }
+
+    const response = await fetch(
+      `${baseUrl}/buscar?nombre=${encodeURIComponent(nombre)}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+
+      throw new Error(
+        data.error || "Error al consultar API"
+      );
+
+    }
+
+    return data;
+
+  } catch (error: any) {
+
+    throw new Error(
+      error.message || "Error desconocido"
+    );
+
+  }
+
+}
+export default function Api() {
+  return null;
+}
