@@ -35,10 +35,14 @@ const { width } = Dimensions.get("window");
 const isDesktop = width > 900;
 
 // ==========================================
-// TIPOS TOAST
+// TIPOS
 // ==========================================
 
-type ToastType = "success" | "error" | "warning" | "info";
+type ToastType =
+  | "success"
+  | "error"
+  | "warning"
+  | "info";
 
 interface Toast {
   type: ToastType;
@@ -46,18 +50,41 @@ interface Toast {
   message: string;
 }
 
-const toastColors: Record<ToastType, { bg: string; border: string; text: string }> = {
-  success: { bg: "#EAF3DE", border: "#639922", text: "#3B6D11" },
-  error:   { bg: "#FCEBEB", border: "#E24B4A", text: "#A32D2D" },
-  warning: { bg: "#FAEEDA", border: "#BA7517", text: "#854F0B" },
-  info:    { bg: "#E6F1FB", border: "#378ADD", text: "#185FA5" },
+// ==========================================
+// TOAST
+// ==========================================
+
+const toastColors = {
+  success: {
+    bg: "#EAF3DE",
+    border: "#639922",
+    text: "#3B6D11",
+  },
+
+  error: {
+    bg: "#FCEBEB",
+    border: "#E24B4A",
+    text: "#A32D2D",
+  },
+
+  warning: {
+    bg: "#FAEEDA",
+    border: "#BA7517",
+    text: "#854F0B",
+  },
+
+  info: {
+    bg: "#E6F1FB",
+    border: "#378ADD",
+    text: "#185FA5",
+  },
 };
 
-const toastIcons: Record<ToastType, string> = {
+const toastIcons = {
   success: "✅",
-  error:   "❌",
+  error: "❌",
   warning: "⚠️",
-  info:    "✨",
+  info: "✨",
 };
 
 // ==========================================
@@ -102,21 +129,37 @@ const animes = [
 ];
 
 // ==========================================
-// ESTADO INICIAL DE ÚLTIMOS CONSULTADOS
+// INICIAL
 // ==========================================
 
 const ultimosConsultadosInicial = [
-  { anime: "Saint Seiya",     personaje: null },
-  { anime: "Hunter x Hunter", personaje: null },
-  { anime: "One Piece",       personaje: null },
+  {
+    anime: "Saint Seiya",
+    personaje: null,
+  },
+
+  {
+    anime: "Hunter x Hunter",
+    personaje: null,
+  },
+
+  {
+    anime: "One Piece",
+    personaje: null,
+  },
 ];
+
+// ==========================================
+// APP
+// ==========================================
 
 export default function App() {
 
   const [animeSeleccionado, setAnimeSeleccionado] =
     useState("saintseiya");
 
-  const [nombre, setNombre] = useState("");
+  const [nombre, setNombre] =
+    useState("");
 
   const [personaje, setPersonaje] =
     useState<any>(null);
@@ -127,51 +170,86 @@ export default function App() {
   const [error, setError] =
     useState("");
 
+  const [toast, setToast] =
+    useState<Toast | null>(null);
+
+  const [favoritos, setFavoritos] =
+    useState<any[]>([]);
+
+  const [ultimosConsultados, setUltimosConsultados] =
+    useState<any[]>(ultimosConsultadosInicial);
+
+  // ==========================================
+  // LOAD
+  // ==========================================
+
+  useEffect(() => {
+
+    cargarFavoritos();
+    cargarUltimosConsultados();
+
+  }, []);
+
   // ==========================================
   // TOAST
   // ==========================================
-
-  const [toast, setToast] = useState<Toast | null>(null);
 
   function showToast(
     type: ToastType,
     title: string,
     message: string
   ) {
-    setToast({ type, title, message });
-    setTimeout(() => setToast(null), 3000);
+
+    setToast({
+      type,
+      title,
+      message,
+    });
+
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+
   }
 
   // ==========================================
   // FAVORITOS
   // ==========================================
 
-  const [favoritos, setFavoritos] =
-    useState<any[]>([]);
-
-  useEffect(() => {
-    cargarFavoritos();
-    cargarUltimosConsultados(); // ← carga resumen al iniciar
-  }, []);
-
   async function cargarFavoritos() {
+
     try {
-      const data = await AsyncStorage.getItem("@anime_favoritos");
-      if (data) setFavoritos(JSON.parse(data));
+
+      const data =
+        await AsyncStorage.getItem(
+          "@anime_favoritos"
+        );
+
+      if (data) {
+        setFavoritos(JSON.parse(data));
+      }
+
     } catch (error) {
       console.log(error);
     }
+
   }
 
-  async function guardarFavoritos(nuevosFavoritos: any[]) {
+  async function guardarFavoritos(
+    nuevosFavoritos: any[]
+  ) {
+
     try {
+
       await AsyncStorage.setItem(
         "@anime_favoritos",
         JSON.stringify(nuevosFavoritos)
       );
+
     } catch (error) {
       console.log(error);
     }
+
   }
 
   async function agregarFavorito() {
@@ -179,16 +257,24 @@ export default function App() {
     if (!personaje) return;
 
     const existe = favoritos.find(
-      (item) => item.nombre === personaje.nombre
+      (item) =>
+        item.nombre === personaje.nombre
     );
 
     if (existe) {
-      showToast("warning", "Ya existe", "Este personaje ya está en favoritos");
+
+      showToast(
+        "warning",
+        "Ya existe",
+        "Este personaje ya está en favoritos"
+      );
+
       return;
     }
 
     const nuevoFavorito = {
       ...personaje,
+
       anime:
         animeSeleccionado === "saintseiya"
           ? "Saint Seiya"
@@ -197,74 +283,130 @@ export default function App() {
           : "One Piece",
     };
 
-    const nuevos = [...favoritos, nuevoFavorito];
+    const nuevos = [
+      ...favoritos,
+      nuevoFavorito,
+    ];
+
     setFavoritos(nuevos);
+
     guardarFavoritos(nuevos);
 
-    showToast("success", "Favorito agregado", `${personaje.nombre} fue agregado a favoritos`);
+    showToast(
+      "success",
+      "Favorito agregado",
+      `${personaje.nombre} agregado`
+    );
+
   }
 
-  async function eliminarFavorito(nombreEliminar: string) {
-    const nuevos = favoritos.filter((item) => item.nombre !== nombreEliminar);
+  async function eliminarFavorito(
+    nombreEliminar: string
+  ) {
+
+    const nuevos =
+      favoritos.filter(
+        (item) =>
+          item.nombre !== nombreEliminar
+      );
+
     setFavoritos(nuevos);
+
     guardarFavoritos(nuevos);
-    showToast("success", "Eliminado", "Favorito eliminado correctamente");
+
+    showToast(
+      "success",
+      "Eliminado",
+      "Favorito eliminado"
+    );
+
   }
 
   // ==========================================
-  // ÚLTIMOS CONSULTADOS — con persistencia
+  // ULTIMOS
   // ==========================================
-
-  const [ultimosConsultados, setUltimosConsultados] =
-    useState<any[]>(ultimosConsultadosInicial);
 
   async function cargarUltimosConsultados() {
+
     try {
-      const data = await AsyncStorage.getItem("@anime_ultimos");
-      if (data) setUltimosConsultados(JSON.parse(data));
+
+      const data =
+        await AsyncStorage.getItem(
+          "@anime_ultimos"
+        );
+
+      if (data) {
+        setUltimosConsultados(
+          JSON.parse(data)
+        );
+      }
+
     } catch (error) {
       console.log(error);
     }
+
   }
 
-  async function guardarUltimosConsultados(nuevos: any[]) {
+  async function guardarUltimosConsultados(
+    nuevos: any[]
+  ) {
+
     try {
+
       await AsyncStorage.setItem(
         "@anime_ultimos",
         JSON.stringify(nuevos)
       );
+
     } catch (error) {
       console.log(error);
     }
+
   }
 
   // ==========================================
-  // PLACEHOLDER
+  // HELPERS
   // ==========================================
 
   function obtenerPlaceholder() {
-    if (animeSeleccionado === "saintseiya")    return "✨ Busca un personaje de Saint Seiya";
-    if (animeSeleccionado === "hunterxhunter") return "⚡ Busca un personaje de Hunter x Hunter";
-    if (animeSeleccionado === "onepiece")      return "🏴‍☠️ Busca un personaje de One Piece";
-    return "Buscar personaje...";
-  }
 
-  // ==========================================
-  // HERO COLORS
-  // ==========================================
+    if (animeSeleccionado === "saintseiya") {
+      return "✨ Busca un personaje";
+    }
+
+    if (animeSeleccionado === "hunterxhunter") {
+      return "⚡ Busca un personaje";
+    }
+
+    if (animeSeleccionado === "onepiece") {
+      return "🏴‍☠️ Busca un personaje";
+    }
+
+    return "Buscar personaje";
+  }
 
   function obtenerColoresHero(): [string, string] {
-    const anime = animes.find((a) => a.key === animeSeleccionado);
+
+    const anime =
+      animes.find(
+        (a) =>
+          a.key === animeSeleccionado
+      );
+
     return anime?.color as [string, string];
+
   }
 
-  // ==========================================
-  // NOMBRE ANIME
-  // ==========================================
-
   function obtenerNombreAnime() {
-    const anime = animes.find((a) => a.key === animeSeleccionado);
+
+    const anime =
+      animes.find(
+        (a) =>
+          a.key === animeSeleccionado
+      );
+
     return anime?.label || "";
+
   }
 
   // ==========================================
@@ -272,158 +414,270 @@ export default function App() {
   // ==========================================
 
   async function consultarApi() {
-  try {
-    setError("");
 
-    if (nombre.trim() === "") {
-      showToast("warning", "Atención", "Debes escribir un personaje");
-      return;
+    try {
+
+      setError("");
+
+      if (nombre.trim() === "") {
+
+        showToast(
+          "warning",
+          "Atención",
+          "Debes escribir un personaje"
+        );
+
+        return;
+      }
+
+      showToast(
+        "info",
+        "Consultando API",
+        "Buscando personaje..."
+      );
+
+      const data =
+        await buscarPersonaje(
+          animeSeleccionado,
+          nombre
+        );
+
+      let personajeEncontrado = null;
+
+      if (Array.isArray(data.personaje)) {
+
+        personajeEncontrado =
+          data.personaje[0];
+
+      } else if (data.personaje) {
+
+        personajeEncontrado =
+          data.personaje;
+
+      } else {
+
+        personajeEncontrado = data;
+
+      }
+
+      if (!personajeEncontrado) {
+
+        throw new Error(
+          "No se encontró personaje"
+        );
+
+      }
+
+      setPersonaje(personajeEncontrado);
+
+      showToast(
+        "success",
+        "Personaje encontrado",
+        personajeEncontrado.nombre
+      );
+
+      const nuevo = {
+
+        anime:
+          animeSeleccionado === "saintseiya"
+            ? "Saint Seiya"
+            : animeSeleccionado === "hunterxhunter"
+            ? "Hunter x Hunter"
+            : "One Piece",
+
+        personaje: personajeEncontrado,
+      };
+
+      setUltimosConsultados((prev) => {
+
+        const copia = [...prev];
+
+        if (
+          animeSeleccionado === "saintseiya"
+        ) {
+          copia[0] = nuevo;
+        }
+
+        if (
+          animeSeleccionado === "hunterxhunter"
+        ) {
+          copia[1] = nuevo;
+        }
+
+        if (
+          animeSeleccionado === "onepiece"
+        ) {
+          copia[2] = nuevo;
+        }
+
+        guardarUltimosConsultados(copia);
+
+        return copia;
+
+      });
+
+    } catch (err: any) {
+
+      console.log(err);
+
+      setPersonaje(null);
+
+      setError(
+        err.message ||
+        "Error desconocido"
+      );
+
+      showToast(
+        "error",
+        "Error",
+        err.message || "Error API"
+      );
+
     }
 
-    showToast("info", "Consultando API", "Buscando personaje...");
-
-    const data = await buscarPersonaje(animeSeleccionado, nombre);
-
-    // 🔥 AQUÍ ESTABA EL ERROR
-    const personajeEncontrado = data.personaje[0];
-
-    setPersonaje(personajeEncontrado);
-
-    showToast(
-      "success",
-      "Personaje encontrado",
-      personajeEncontrado.nombre
-    );
-
-    const nuevo = {
-      anime:
-        animeSeleccionado === "saintseiya"
-          ? "Saint Seiya"
-          : animeSeleccionado === "hunterxhunter"
-          ? "Hunter x Hunter"
-          : "One Piece",
-
-      personaje: personajeEncontrado,
-    };
-
-    setUltimosConsultados((prev) => {
-      const copia = [...prev];
-
-      if (animeSeleccionado === "saintseiya")
-        copia[0] = nuevo;
-
-      if (animeSeleccionado === "hunterxhunter")
-        copia[1] = nuevo;
-
-      if (animeSeleccionado === "onepiece")
-        copia[2] = nuevo;
-
-      guardarUltimosConsultados(copia);
-
-      return copia;
-    });
-
-  } catch (err: any) {
-    setPersonaje(null);
-    setError(err.message);
-
-    showToast("error", "Error", err.message);
   }
-}
 
- // ==========================================
-  // CERRAR SESION
+  // ==========================================
+  // LOGOUT
   // ==========================================
 
   async function cerrarSesion() {
-  try {
 
-    // elimina sesión
-    await AsyncStorage.removeItem("@usuario");
+    try {
 
-    // opcional limpiar estados
-    setPersonaje(null);
-    setFavoritos([]);
-    setNombre("");
+      await AsyncStorage.removeItem(
+        "@usuario"
+      );
 
-    showToast(
-      "success",
-      "Sesión cerrada",
-      "Hasta luego ✨"
-    );
+      setPersonaje(null);
 
-    setTimeout(() => {
-      router.replace("/login");
-    }, 1000);
+      setFavoritos([]);
 
-  } catch (error) {
-    console.log(error);
+      setNombre("");
 
-    showToast(
-      "error",
-      "Error",
-      "No se pudo cerrar sesión"
-    );
+      showToast(
+        "success",
+        "Sesión cerrada",
+        "Hasta luego ✨"
+      );
+
+      setTimeout(() => {
+
+        router.replace("/login");
+
+      }, 1000);
+
+    } catch (error) {
+
+      console.log(error);
+
+      showToast(
+        "error",
+        "Error",
+        "No se pudo cerrar sesión"
+      );
+
+    }
+
   }
-}
 
   // ==========================================
   // RESUMEN
   // ==========================================
 
   function renderResumen() {
+
     return (
+
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{
+          paddingBottom: 160,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.resumenTitulo}>🌸 Anime Memory Cards 🌸</Text>
+
+        <Text style={styles.resumenTitulo}>
+          🌸 Anime Memory Cards 🌸
+        </Text>
 
         <View style={styles.cardsContainer}>
-          {ultimosConsultados.map((item, index) => (
-            <LinearGradient
-              key={index}
-              colors={["#140f2d", "#2a1458", "#4c1d95"]}
-              style={styles.cardResumen}
-            >
-              <View style={styles.glow} />
 
-              <Text style={styles.animeTop}>🎌 {item.anime}</Text>
+          {ultimosConsultados.map(
+            (item, index) => (
 
-              {item.personaje ? (
-                <>
-                  {item.personaje.imagenes?.[0] && (
-                    <Image
-  source={{ uri: item.personaje.imagenes[0]?.url }}
-  style={styles.fotoMini}
-/>
-                  )}
+              <LinearGradient
+                key={index}
+                colors={[
+                  "#140f2d",
+                  "#2a1458",
+                  "#4c1d95",
+                ]}
+                style={styles.cardResumen}
+              >
 
-                  <Text style={styles.nombreResumen}>✨ {item.personaje.nombre}</Text>
-                  <Text style={styles.infoResumen}>🎂 Edad: {item.personaje.edad}</Text>
-                  <Text style={styles.infoResumen}>👤 Raza: {item.personaje.raza}</Text>
-                  <Text style={styles.infoResumen}>⚔️ Poder: {item.personaje.poder}</Text>
-                  <Text style={styles.infoResumen}>📚 Categoría: {item.personaje.categoria}</Text>
-                  <Text style={styles.infoResumen}>📝 {item.personaje.descripcion}</Text>
+                <Text style={styles.animeTop}>
+                  🎌 {item.anime}
+                </Text>
 
-                  <TouchableOpacity
-                    style={styles.btnMini}
-                    onPress={() => {
-                      setPersonaje(item.personaje);
-                      setModalVisible(true);
-                    }}
-                  >
-                    <Text style={styles.textoMini}>🌸 Ver imágenes</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text style={styles.vacio}>Sin búsquedas todavía</Text>
-              )}
-            </LinearGradient>
-          ))}
+                {item.personaje ? (
+                  <>
+
+                    {item.personaje?.imagenes?.[0]?.url && (
+
+                      <Image
+                        source={{
+                          uri:
+                            item.personaje.imagenes[0]
+                              .url,
+                        }}
+                        style={styles.fotoMini}
+                      />
+
+                    )}
+
+                    <Text style={styles.nombreResumen}>
+                      ✨ {item.personaje.nombre}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={styles.btnMini}
+                      onPress={() => {
+
+                        setPersonaje(
+                          item.personaje
+                        );
+
+                        setModalVisible(true);
+
+                      }}
+                    >
+
+                      <Text style={styles.textoMini}>
+                        🌸 Ver imágenes
+                      </Text>
+
+                    </TouchableOpacity>
+
+                  </>
+                ) : (
+
+                  <Text style={styles.vacio}>
+                    Sin búsquedas todavía
+                  </Text>
+
+                )}
+
+              </LinearGradient>
+
+            )
+          )}
+
         </View>
+
       </ScrollView>
+
     );
+
   }
 
   // ==========================================
@@ -431,59 +685,96 @@ export default function App() {
   // ==========================================
 
   function renderFavoritos() {
+
     return (
+
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 160 }}
+        contentContainerStyle={{
+          paddingBottom: 160,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.resumenTitulo}>❤️ Favoritos ❤️</Text>
+
+        <Text style={styles.resumenTitulo}>
+          ❤️ Favoritos ❤️
+        </Text>
 
         <View style={styles.cardsContainer}>
+
           {favoritos.map((item, index) => (
+
             <LinearGradient
               key={index}
-              colors={["#140f2d", "#2a1458", "#4c1d95"]}
+              colors={[
+                "#140f2d",
+                "#2a1458",
+                "#4c1d95",
+              ]}
               style={styles.cardResumen}
             >
-              <View style={styles.glow} />
 
-              <Text style={styles.animeTop}>🎌 {item.anime}</Text>
+              <Text style={styles.animeTop}>
+                🎌 {item.anime}
+              </Text>
 
-              {item.imagenes?.[0] && (
+              {item?.imagenes?.[0]?.url && (
+
                 <Image
-  source={{ uri: item.imagenes[0]?.url }}
-  style={styles.fotoMini}
-/>
+                  source={{
+                    uri:
+                      item.imagenes[0].url,
+                  }}
+                  style={styles.fotoMini}
+                />
+
               )}
 
-              <Text style={styles.nombreResumen}>✨ {item.nombre}</Text>
-              <Text style={styles.infoResumen}>🎂 Edad: {item.edad}</Text>
-              <Text style={styles.infoResumen}>👤 Raza: {item.raza}</Text>
-              <Text style={styles.infoResumen}>⚔️ Poder: {item.poder}</Text>
-              <Text style={styles.infoResumen}>📚 Categoría: {item.categoria}</Text>
-              <Text style={styles.infoResumen}>📝 {item.descripcion}</Text>
+              <Text style={styles.nombreResumen}>
+                ✨ {item.nombre}
+              </Text>
 
               <TouchableOpacity
                 style={styles.btnMini}
                 onPress={() => {
+
                   setPersonaje(item);
+
                   setModalVisible(true);
+
                 }}
               >
-                <Text style={styles.textoMini}>🌸 Ver imágenes</Text>
+
+                <Text style={styles.textoMini}>
+                  🌸 Ver imágenes
+                </Text>
+
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.btnEliminar}
-                onPress={() => eliminarFavorito(item.nombre)}
+                onPress={() =>
+                  eliminarFavorito(
+                    item.nombre
+                  )
+                }
               >
-                <Text style={styles.textoMini}>🗑️ Eliminar</Text>
+
+                <Text style={styles.textoMini}>
+                  🗑️ Eliminar
+                </Text>
+
               </TouchableOpacity>
+
             </LinearGradient>
+
           ))}
+
         </View>
+
       </ScrollView>
+
     );
+
   }
 
   // ==========================================
@@ -491,23 +782,40 @@ export default function App() {
   // ==========================================
 
   function renderBusqueda() {
+
     return (
+
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 170 }}
+        contentContainerStyle={{
+          paddingBottom: 170,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.circle1} />
-        <View style={styles.circle2} />
 
-        <LinearGradient colors={obtenerColoresHero()} style={styles.hero}>
-          <Text style={styles.animeSeleccionado}>🎌 {obtenerNombreAnime()}</Text>
-          <Text style={styles.heroEmoji}>✨⚡🏴‍☠️</Text>
-          <Text style={styles.heroTitle}>Anime Finder</Text>
-          <Text style={styles.heroNombre}>{nombre || "Personaje Anime"}</Text>
+        <LinearGradient
+          colors={obtenerColoresHero()}
+          style={styles.hero}
+        >
+
+          <Text style={styles.animeSeleccionado}>
+            🎌 {obtenerNombreAnime()}
+          </Text>
+
+          <Text style={styles.heroTitle}>
+            Anime Finder
+          </Text>
+
+          <Text style={styles.heroNombre}>
+            {nombre || "Personaje Anime"}
+          </Text>
+
         </LinearGradient>
 
         <View style={styles.searchCard}>
-          <Text style={styles.label}>🔎 Buscar personaje</Text>
+
+          <Text style={styles.label}>
+            🔎 Buscar personaje
+          </Text>
 
           <TextInput
             placeholder={obtenerPlaceholder()}
@@ -517,48 +825,89 @@ export default function App() {
             style={styles.input}
           />
 
-          <TouchableOpacity onPress={consultarApi} style={styles.btnContainer}>
-            <LinearGradient colors={["#ec4899", "#9333ea"]} style={styles.btn}>
-              <Text style={styles.textoBoton}>✨ Consultar API</Text>
+          <TouchableOpacity
+            onPress={consultarApi}
+            style={styles.btnContainer}
+          >
+
+            <LinearGradient
+              colors={[
+                "#ec4899",
+                "#9333ea",
+              ]}
+              style={styles.btn}
+            >
+
+              <Text style={styles.textoBoton}>
+                ✨ Consultar API
+              </Text>
+
             </LinearGradient>
+
           </TouchableOpacity>
+
         </View>
 
         {personaje && (
+
           <LinearGradient
-            colors={["#111827", "#1e1b4b", "#312e81"]}
+            colors={[
+              "#111827",
+              "#1e1b4b",
+              "#312e81",
+            ]}
             style={styles.personajeCard}
           >
-            <Text style={styles.animeTopGrande}>🎌 {obtenerNombreAnime()}</Text>
-            <Text style={styles.nombrePrincipal}>✨ {personaje.nombre}</Text>
-            <View style={styles.linea} />
 
-            <View style={styles.infoBox}><Text style={styles.info}>🎂 Edad: {personaje.edad}</Text></View>
-            <View style={styles.infoBox}><Text style={styles.info}>👤 Raza: {personaje.raza}</Text></View>
-            <View style={styles.infoBox}><Text style={styles.info}>⚔️ Poder: {personaje.poder}</Text></View>
-            <View style={styles.infoBox}><Text style={styles.info}>📚 Categoría: {personaje.categoria}</Text></View>
-            <View style={styles.infoBox}><Text style={styles.info}>📝 {personaje.descripcion}</Text></View>
+            <Text style={styles.nombrePrincipal}>
+              ✨ {personaje.nombre}
+            </Text>
 
             <TouchableOpacity
               style={styles.botonImagenes}
-              onPress={() => setModalVisible(true)}
+              onPress={() =>
+                setModalVisible(true)
+              }
             >
-              <Text style={styles.textoBoton}>🌸 Ver imágenes</Text>
+
+              <Text style={styles.textoBoton}>
+                🌸 Ver imágenes
+              </Text>
+
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.btnFavorito} onPress={agregarFavorito}>
-              <Text style={styles.textoBoton}>❤️ Guardar favorito</Text>
+            <TouchableOpacity
+              style={styles.btnFavorito}
+              onPress={agregarFavorito}
+            >
+
+              <Text style={styles.textoBoton}>
+                ❤️ Guardar favorito
+              </Text>
+
             </TouchableOpacity>
+
           </LinearGradient>
+
         )}
+
       </ScrollView>
+
     );
+
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+  // ==========================================
+  // RETURN
+  // ==========================================
 
+  return (
+
+    <SafeAreaView style={styles.container}>
+
+      <StatusBar
+        barStyle="light-content"
+      />
 
       {animeSeleccionado === "resumen"
         ? renderResumen()
@@ -567,238 +916,198 @@ export default function App() {
         : renderBusqueda()}
 
       {/* TOAST */}
+
       {toast && (
+
         <View
           style={[
             styles.toastContainer,
             {
-              backgroundColor: toastColors[toast.type].bg,
-              borderColor: toastColors[toast.type].border,
+              backgroundColor:
+                toastColors[toast.type].bg,
+
+              borderColor:
+                toastColors[toast.type]
+                  .border,
             },
           ]}
         >
-          <Text style={styles.toastIcon}>{toastIcons[toast.type]}</Text>
+
+          <Text style={styles.toastIcon}>
+            {toastIcons[toast.type]}
+          </Text>
+
           <View style={styles.toastTextos}>
-            <Text style={[styles.toastTitulo, { color: toastColors[toast.type].text }]}>
+
+            <Text
+              style={[
+                styles.toastTitulo,
+                {
+                  color:
+                    toastColors[toast.type]
+                      .text,
+                },
+              ]}
+            >
               {toast.title}
             </Text>
-            <Text style={[styles.toastMensaje, { color: toastColors[toast.type].text }]}>
+
+            <Text
+              style={[
+                styles.toastMensaje,
+                {
+                  color:
+                    toastColors[toast.type]
+                      .text,
+                },
+              ]}
+            >
               {toast.message}
             </Text>
+
           </View>
+
         </View>
+
       )}
 
       {/* MODAL */}
-      <Modal visible={modalVisible} transparent animationType="fade">
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+      >
+
         <View style={styles.overlay}>
+
           <LinearGradient
-            colors={["#111827", "#312e81", "#581c87"]}
+            colors={[
+              "#111827",
+              "#312e81",
+              "#581c87",
+            ]}
             style={styles.modalBox}
           >
-            <Text style={styles.modalTitulo}>🌸 Anime Gallery 🌸</Text>
+
+            <Text style={styles.modalTitulo}>
+              🌸 Anime Gallery 🌸
+            </Text>
 
             <FlatList
-              data={personaje?.imagenes || []}
-              keyExtractor={(item, index) => index.toString()}
+              data={
+                personaje?.imagenes || []
+              }
+              keyExtractor={(
+                item,
+                index
+              ) => index.toString()}
               numColumns={2}
-              scrollEnabled={false}
               renderItem={({ item }) => (
-                <Image source={{ uri: item.url }} style={styles.imagen} />
+
+                <Image
+                  source={{
+                    uri: item.url,
+                  }}
+                  style={styles.imagen}
+                />
+
               )}
             />
 
             <TouchableOpacity
               style={styles.cerrarBtn}
-              onPress={() => setModalVisible(false)}
+              onPress={() =>
+                setModalVisible(false)
+              }
             >
-              <Text style={styles.textoBoton}>✨ Cerrar</Text>
+
+              <Text style={styles.textoBoton}>
+                ✨ Cerrar
+              </Text>
+
             </TouchableOpacity>
+
           </LinearGradient>
+
         </View>
+
       </Modal>
 
       {/* TABS */}
-<View style={styles.tabs}>
 
-  {animes.map((anime) => (
-    <TouchableOpacity
-      key={anime.key}
-      style={[
-        styles.tab,
-        animeSeleccionado === anime.key && styles.tabActiva
-      ]}
-      onPress={() => {
-        setAnimeSeleccionado(anime.key);
-        setPersonaje(null);
-        setNombre("");
-        setError("");
-      }}
-    >
-      <Text style={styles.tabEmoji}>{anime.emoji}</Text>
-      <Text style={styles.tabTexto}>{anime.label}</Text>
-    </TouchableOpacity>
-  ))}
+      <View style={styles.tabs}>
 
-  {/* BOTON CERRAR SESION */}
-  <TouchableOpacity
-    style={styles.logoutTab}
-    onPress={cerrarSesion}
-  >
-    <Text style={styles.tabEmoji}>🚪</Text>
-    <Text style={styles.tabTexto}>Salir</Text>
-  </TouchableOpacity>
+        {animes.map((anime) => (
 
-</View>
+          <TouchableOpacity
+            key={anime.key}
+            style={[
+              styles.tab,
+
+              animeSeleccionado ===
+                anime.key &&
+                styles.tabActiva,
+            ]}
+            onPress={() => {
+
+              setAnimeSeleccionado(
+                anime.key
+              );
+
+              setPersonaje(null);
+
+              setNombre("");
+
+              setError("");
+
+            }}
+          >
+
+            <Text style={styles.tabEmoji}>
+              {anime.emoji}
+            </Text>
+
+            <Text style={styles.tabTexto}>
+              {anime.label}
+            </Text>
+
+          </TouchableOpacity>
+
+        ))}
+
+        <TouchableOpacity
+          style={styles.logoutTab}
+          onPress={cerrarSesion}
+        >
+
+          <Text style={styles.tabEmoji}>
+            🚪
+          </Text>
+
+          <Text style={styles.tabTexto}>
+            Salir
+          </Text>
+
+        </TouchableOpacity>
+
+      </View>
+
     </SafeAreaView>
+
   );
+
 }
+
+// ==========================================
+// STYLES
+// ==========================================
 
 const styles = StyleSheet.create({
 
   container: {
     flex: 1,
     backgroundColor: "#050816",
-  },
-
-  // ==========================================
-  // TOAST STYLES
-  // ==========================================
-
-  toastContainer: {
-    position: "absolute",
-    top: 60,
-    left: 18,
-    right: 18,
-    zIndex: 9999,
-    borderWidth: 1,
-    borderRadius: 18,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-
-  toastIcon: {
-    fontSize: 20,
-    marginTop: 1,
-  },
-
-  toastTextos: {
-    flex: 1,
-  },
-
-  toastTitulo: {
-    fontWeight: "bold",
-    fontSize: 15,
-    marginBottom: 2,
-  },
-
-  toastMensaje: {
-    fontSize: 13,
-  },
-
-  // ==========================================
-
-  animeSeleccionado: {
-    color: "#fde68a",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-
-  heroNombre: {
-    color: "#fbcfe8",
-    fontSize: 18,
-    marginTop: 10,
-    fontWeight: "bold",
-  },
-
-  animeTop: {
-    color: "#f9a8d4",
-    fontSize: 15,
-    textAlign: "center",
-    marginBottom: 10,
-    fontWeight: "bold",
-  },
-
-  animeTopGrande: {
-    color: "#f9a8d4",
-    fontSize: 20,
-    textAlign: "center",
-    marginBottom: 12,
-    fontWeight: "bold",
-  },
-
-  vacio: {
-    color: "#d1d5db",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 14,
-  },
-
-  fotoMini: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
-    alignSelf: "center",
-    marginBottom: 12,
-  },
-
-  btnMini: {
-    backgroundColor: "#ec4899",
-    paddingVertical: 9,
-    borderRadius: 14,
-    marginTop: 12,
-    alignItems: "center",
-  },
-
-  textoMini: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-
-  btnEliminar: {
-    backgroundColor: "#ef4444",
-    paddingVertical: 9,
-    borderRadius: 14,
-    marginTop: 10,
-    alignItems: "center",
-  },
-
-  btnFavorito: {
-    backgroundColor: "#db2777",
-    padding: 14,
-    borderRadius: 18,
-    alignItems: "center",
-    marginTop: 12,
-  },
-
-  circle1: {
-    position: "absolute",
-    width: 250,
-    height: 250,
-    backgroundColor: "#9333ea",
-    borderRadius: 999,
-    top: -60,
-    left: -80,
-    opacity: 0.15,
-  },
-
-  circle2: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    backgroundColor: "#ec4899",
-    borderRadius: 999,
-    bottom: 150,
-    right: -70,
-    opacity: 0.12,
   },
 
   hero: {
@@ -809,15 +1118,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  heroEmoji: {
-    fontSize: 34,
-    marginBottom: 10,
+  animeSeleccionado: {
+    color: "#fde68a",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 12,
   },
 
   heroTitle: {
     color: "white",
     fontSize: 34,
     fontWeight: "900",
+  },
+
+  heroNombre: {
+    color: "#fbcfe8",
+    fontSize: 18,
+    marginTop: 10,
+    fontWeight: "bold",
   },
 
   searchCard: {
@@ -881,24 +1199,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 
-  linea: {
-    height: 1,
-    backgroundColor: "#7e22ce",
-    marginBottom: 20,
-  },
-
-  infoBox: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 10,
-  },
-
-  info: {
-    color: "#f3f4f6",
-    fontSize: 16,
-  },
-
   botonImagenes: {
     backgroundColor: "#ec4899",
     padding: 14,
@@ -907,35 +1207,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  cardsContainer: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  justifyContent: "center",
-  gap: 16,
-  paddingHorizontal: 15,
-},
-
-  cardResumen: {
-    width: isDesktop ? 380 : "100%",
-    maxWidth: "100%",
-    borderRadius: 24,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#7e22ce",
-    overflow: "hidden",
-    minHeight: 320,
-  },
-
-  glow: {
-    position: "absolute",
-    width: 120,
-    height: 120,
-    backgroundColor: "#ec4899",
-    borderRadius: 999,
-    opacity: 0.12,
-    top: -40,
-    right: -40,
+  btnFavorito: {
+    backgroundColor: "#db2777",
+    padding: 14,
+    borderRadius: 18,
+    alignItems: "center",
+    marginTop: 12,
   },
 
   resumenTitulo: {
@@ -947,6 +1224,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  cardsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 16,
+    paddingHorizontal: 15,
+  },
+
+  cardResumen: {
+    width:
+      isDesktop
+        ? 380
+        : width - 30,
+
+    borderRadius: 24,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#7e22ce",
+  },
+
+  animeTop: {
+    color: "#f9a8d4",
+    fontSize: 15,
+    textAlign: "center",
+    marginBottom: 10,
+    fontWeight: "bold",
+  },
+
+  fotoMini: {
+    width: 70,
+    height: 70,
+    borderRadius: 16,
+    alignSelf: "center",
+    marginBottom: 12,
+  },
+
   nombreResumen: {
     color: "white",
     fontSize: 18,
@@ -955,23 +1269,50 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  infoResumen: {
-    color: "#f3f4f6",
-    marginBottom: 6,
-    fontSize: 12,
+  vacio: {
+    color: "#d1d5db",
     textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+  },
+
+  btnMini: {
+    backgroundColor: "#ec4899",
+    paddingVertical: 9,
+    borderRadius: 14,
+    marginTop: 12,
+    alignItems: "center",
+  },
+
+  btnEliminar: {
+    backgroundColor: "#ef4444",
+    paddingVertical: 9,
+    borderRadius: 14,
+    marginTop: 10,
+    alignItems: "center",
+  },
+
+  textoMini: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 12,
   },
 
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.82)",
+    backgroundColor:
+      "rgba(0,0,0,0.82)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
 
   modalBox: {
-    width: isDesktop ? 430 : "92%",
+    width:
+      isDesktop
+        ? 430
+        : "92%",
+
     borderRadius: 30,
     padding: 20,
     borderWidth: 1,
@@ -987,8 +1328,16 @@ const styles = StyleSheet.create({
   },
 
   imagen: {
-    width: isDesktop ? 175 : (width - 100) / 2,
-    height: isDesktop ? 175 : (width - 100) / 2,
+    width:
+      isDesktop
+        ? 175
+        : (width - 100) / 2,
+
+    height:
+      isDesktop
+        ? 175
+        : (width - 100) / 2,
+
     borderRadius: 22,
     margin: 5,
   },
@@ -1019,17 +1368,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  logoutTab: {
-  backgroundColor: "#dc2626",
-  marginHorizontal: 4,
-  borderRadius: 18,
-  paddingVertical: 10,
-  alignItems: "center",
-  paddingHorizontal: 12,
-},
-
   tabActiva: {
     backgroundColor: "#9333ea",
+  },
+
+  logoutTab: {
+    backgroundColor: "#dc2626",
+    marginHorizontal: 4,
+    borderRadius: 18,
+    paddingVertical: 10,
+    alignItems: "center",
+    paddingHorizontal: 12,
   },
 
   tabEmoji: {
@@ -1044,5 +1393,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  
+  toastContainer: {
+    position: "absolute",
+    top: 60,
+    left: 18,
+    right: 18,
+    zIndex: 9999,
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+
+  toastIcon: {
+    fontSize: 20,
+    marginTop: 1,
+  },
+
+  toastTextos: {
+    flex: 1,
+  },
+
+  toastTitulo: {
+    fontWeight: "bold",
+    fontSize: 15,
+    marginBottom: 2,
+  },
+
+  toastMensaje: {
+    fontSize: 13,
+  },
+
 });
