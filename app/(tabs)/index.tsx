@@ -28,6 +28,12 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { buscarPersonaje } from "./api";
 
+import {
+  obtenerFavoritos,
+  agregarFavoritoApi,
+  eliminarFavoritoApi,
+} from "./favoritosApi";
+
 import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -179,16 +185,54 @@ export default function App() {
   const [ultimosConsultados, setUltimosConsultados] =
     useState<any[]>(ultimosConsultadosInicial);
 
+  // ID del usuario logueado
+  const [usuarioId, setUsuarioId] =
+    useState<number | null>(null);
+
   // ==========================================
   // LOAD
   // ==========================================
 
   useEffect(() => {
 
-    cargarFavoritos();
+    cargarUsuario();
     cargarUltimosConsultados();
 
   }, []);
+
+  // Cuando tengamos el usuarioId, cargamos favoritos del backend
+  useEffect(() => {
+
+    if (usuarioId !== null) {
+      cargarFavoritos();
+    }
+
+  }, [usuarioId]);
+
+  // ==========================================
+  // CARGAR USUARIO
+  // ==========================================
+
+  async function cargarUsuario() {
+
+    try {
+
+      const data =
+        await AsyncStorage.getItem("@usuario");
+
+      if (data) {
+
+        const usuario = JSON.parse(data);
+
+        setUsuarioId(usuario.id);
+
+      }
+
+    } catch (err) {
+      console.log("Error cargando usuario:", err);
+    }
+
+  }
 
   // ==========================================
   // TOAST
@@ -213,41 +257,35 @@ export default function App() {
   }
 
   // ==========================================
-  // FAVORITOS
+  // FAVORITOS — BACKEND
   // ==========================================
 
   async function cargarFavoritos() {
 
-    try {
-
-      const data =
-        await AsyncStorage.getItem(
-          "@anime_favoritos"
-        );
-
-      if (data) {
-        setFavoritos(JSON.parse(data));
-      }
-
-    } catch (error) {
-      console.log(error);
-    }
-
-  }
-
-  async function guardarFavoritos(
-    nuevosFavoritos: any[]
-  ) {
+    if (!usuarioId) return;
 
     try {
 
-      await AsyncStorage.setItem(
-        "@anime_favoritos",
-        JSON.stringify(nuevosFavoritos)
-      );
+      const data = await obtenerFavoritos(usuarioId);
 
-    } catch (error) {
-      console.log(error);
+      // El backend devuelve array de favoritos
+      // Normalizamos para que tengan la misma forma que antes
+      const normalizados = data.map((item: any) => ({
+        ...item,
+        // Aseguramos que imagenes sea array de objetos { url }
+        imagenes: Array.isArray(item.imagenes)
+          ? item.imagenes.map((img: any) =>
+              typeof img === "string" ? { url: img } : img
+            )
+          : [],
+        // Guardamos el id del backend para poder eliminar
+        _favoritoId: item.id,
+      }));
+
+      setFavoritos(normalizados);
+
+    } catch (err) {
+      console.log("Error cargando favoritos:", err);
     }
 
   }
@@ -256,69 +294,119 @@ export default function App() {
 
     if (!personaje) return;
 
+    if (!usuarioId) {
+      showToast("error", "Error", "No hay sesión activa");
+      return;
+    }
+
+    // Verificar si ya existe por nombre
     const existe = favoritos.find(
-      (item) =>
-        item.nombre === personaje.nombre
+      (item) => item.nombre === personaje.nombre
     );
 
     if (existe) {
-
       showToast(
         "warning",
         "Ya existe",
         "Este personaje ya está en favoritos"
       );
-
       return;
     }
 
-    const nuevoFavorito = {
-      ...personaje,
+    const nombreAnime =
+      animeSeleccionado === "saintseiya"
+        ? "Saint Seiya"
+        : animeSeleccionado === "hunterxhunter"
+        ? "Hunter x Hunter"
+        : "One Piece";
 
-      anime:
-        animeSeleccionado === "saintseiya"
-          ? "Saint Seiya"
-          : animeSeleccionado === "hunterxhunter"
-          ? "Hunter x Hunter"
-          : "One Piece",
+    // Preparar data para el backend
+    const dataFavorito = {
+      usuario_id: usuarioId,
+      anime: nombreAnime,
+      nombre: personaje.nombre,
+      edad: personaje.edad ? String(personaje.edad) : null,
+      raza: personaje.raza || null,
+      poder: personaje.poder || null,
+      categoria: personaje.categoria || null,
+      descripcion: personaje.descripcion || null,
+      // Guardamos las imagenes como JSONB
+      imagenes: personaje.imagenes || [],
     };
 
-    const nuevos = [
-      ...favoritos,
-      nuevoFavorito,
-    ];
+    try {
 
-    setFavoritos(nuevos);
+      const respuesta = await agregarFavoritoApi(dataFavorito);
 
-    guardarFavoritos(nuevos);
+      // Agregar localmente con el id del backend
+      const nuevoFavorito = {
+        ...dataFavorito,
+        _favoritoId: respuesta.id || respuesta.favorito?.id,
+        imagenes: Array.isArray(personaje.imagenes)
+          ? personaje.imagenes.map((img: any) =>
+              typeof img === "string" ? { url: img } : img
+            )
+          : [],
+      };
 
-    showToast(
-      "success",
-      "Favorito agregado",
-      `${personaje.nombre} agregado`
-    );
+      setFavoritos((prev) => [...prev, nuevoFavorito]);
+
+      showToast(
+        "success",
+        "Favorito agregado",
+        `${personaje.nombre} guardado ✨`
+      );
+
+    } catch (err: any) {
+
+      console.log("Error agregando favorito:", err);
+
+      showToast(
+        "error",
+        "Error",
+        err.message || "No se pudo guardar el favorito"
+      );
+
+    }
 
   }
 
-  async function eliminarFavorito(
-    nombreEliminar: string
-  ) {
+  async function eliminarFavorito(nombreEliminar: string) {
 
-    const nuevos =
-      favoritos.filter(
-        (item) =>
-          item.nombre !== nombreEliminar
+    // Buscar el favorito para obtener su id del backend
+    const favorito = favoritos.find(
+      (item) => item.nombre === nombreEliminar
+    );
+
+    if (!favorito) return;
+
+    const idBackend = favorito._favoritoId || favorito.id;
+
+    try {
+
+      if (idBackend) {
+        await eliminarFavoritoApi(idBackend);
+      }
+
+      const nuevos = favoritos.filter(
+        (item) => item.nombre !== nombreEliminar
       );
 
-    setFavoritos(nuevos);
+      setFavoritos(nuevos);
 
-    guardarFavoritos(nuevos);
+      showToast("success", "Eliminado", "Favorito eliminado");
 
-    showToast(
-      "success",
-      "Eliminado",
-      "Favorito eliminado"
-    );
+    } catch (err: any) {
+
+      console.log("Error eliminando favorito:", err);
+
+      showToast(
+        "error",
+        "Error",
+        err.message || "No se pudo eliminar el favorito"
+      );
+
+    }
 
   }
 
@@ -549,11 +637,15 @@ export default function App() {
         "@usuario"
       );
 
+      await AsyncStorage.removeItem("@token");
+
       setPersonaje(null);
 
       setFavoritos([]);
 
       setNombre("");
+
+      setUsuarioId(null);
 
       showToast(
         "success",
@@ -698,6 +790,12 @@ export default function App() {
         <Text style={styles.resumenTitulo}>
           ❤️ Favoritos ❤️
         </Text>
+
+        {favoritos.length === 0 && (
+          <Text style={styles.vacio}>
+            Aún no tienes favoritos guardados
+          </Text>
+        )}
 
         <View style={styles.cardsContainer}>
 
@@ -1007,7 +1105,7 @@ export default function App() {
 
                 <Image
                   source={{
-                    uri: item.url,
+                    uri: typeof item === "string" ? item : item.url,
                   }}
                   style={styles.imagen}
                 />
