@@ -217,9 +217,21 @@ export default function App() {
 
     try {
 
+      // Intento directo y prioritario
+      const rawDirecto = await AsyncStorage.getItem("@usuario");
+      if (rawDirecto && rawDirecto !== "undefined" && rawDirecto !== "null") {
+        try {
+          const u = JSON.parse(rawDirecto);
+          if (u?.id) {
+            setUsuarioId(u.id);
+            return;
+          }
+        } catch {}
+      }
+
       // Expo Web puede guardar con prefijo diferente — probar varias keys
       const keys = ["@usuario", "usuario", "@RNCAsyncStorage:@usuario"];
-      
+
       for (const key of keys) {
         const raw = await AsyncStorage.getItem(key);
         if (raw && raw !== "undefined" && raw !== "null") {

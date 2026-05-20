@@ -1,5 +1,22 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL;
+
+// =======================================
+// HELPER: headers con token
+// =======================================
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+
+  const token = await AsyncStorage.getItem("@token");
+
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+}
 
 // =======================================
 // OBTENER FAVORITOS
@@ -7,14 +24,17 @@ const BASE_URL =
 
 export async function obtenerFavoritos(usuarioId: number) {
 
+  const headers = await getAuthHeaders();
+
   const res = await fetch(
-    `${BASE_URL}/favoritos/${usuarioId}`
+    `${BASE_URL}/favoritos/${usuarioId}`,
+    { headers }
   );
 
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error);
+    throw new Error(data.error || data.detail);
   }
 
   return data;
@@ -26,13 +46,13 @@ export async function obtenerFavoritos(usuarioId: number) {
 
 export async function agregarFavoritoApi(dataFavorito: any) {
 
+  const headers = await getAuthHeaders();
+
   const res = await fetch(
     `${BASE_URL}/favoritos`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers,
       body: JSON.stringify(dataFavorito)
     }
   );
@@ -40,7 +60,7 @@ export async function agregarFavoritoApi(dataFavorito: any) {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error);
+    throw new Error(data.error || data.detail);
   }
 
   return data;
@@ -52,17 +72,20 @@ export async function agregarFavoritoApi(dataFavorito: any) {
 
 export async function eliminarFavoritoApi(id: number) {
 
+  const headers = await getAuthHeaders();
+
   const res = await fetch(
     `${BASE_URL}/favoritos/${id}`,
     {
-      method: "DELETE"
+      method: "DELETE",
+      headers,
     }
   );
 
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error);
+    throw new Error(data.error || data.detail);
   }
 
   return data;
