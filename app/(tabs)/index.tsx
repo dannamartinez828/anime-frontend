@@ -1007,13 +1007,11 @@ export default function App() {
         barStyle="light-content"
       />
 
-      <View style={{ flex: 1 }}>
-        {animeSeleccionado === "resumen"
-          ? renderResumen()
-          : animeSeleccionado === "favoritos"
-          ? renderFavoritos()
-          : renderBusqueda()}
-      </View>
+      {animeSeleccionado === "resumen"
+        ? renderResumen()
+        : animeSeleccionado === "favoritos"
+        ? renderFavoritos()
+        : renderBusqueda()}
 
       {/* TOAST */}
 
@@ -1208,15 +1206,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050816",
-    ...(Platform.OS === "web"
-      ? {
-          height: "100vh" as any,
-          maxHeight: "100vh" as any,
-          display: "flex" as any,
-          flexDirection: "column" as any,
-          overflow: "hidden" as any,
-        }
-      : {}),
   },
 
   hero: {
@@ -1467,6 +1456,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#27272a",
     flexShrink: 0,
+    ...(Platform.OS === "web"
+      ? {
+          position: "fixed" as any,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+        }
+      : {}),
   },
 
   tab: {
