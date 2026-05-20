@@ -217,21 +217,77 @@ export default function App() {
 
     try {
 
-      const data =
-        await AsyncStorage.getItem("@usuario");
+      // Expo Web puede guardar con prefijo diferente — probar varias keys
+      const keys = ["@usuario", "usuario", "@RNCAsyncStorage:@usuario"];
+      
+      for (const key of keys) {
+        const raw = await AsyncStorage.getItem(key);
+        if (raw && raw !== "undefined" && raw !== "null") {
+          try {
+            const u = JSON.parse(raw);
+            if (u?.id) {
+              setUsuarioId(u.id);
+              return;
+            }
+          } catch {}
+        }
+      }
 
-      if (data) {
-
-        const usuario = JSON.parse(data);
-
-        setUsuarioId(usuario.id);
-
+      // Último recurso: leer el token y decodificar el id
+      const token = await AsyncStorage.getItem("@token");
+      if (token && token !== "undefined") {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          if (payload?.id || payload?.userId || payload?.sub) {
+            setUsuarioId(payload.id || payload.userId || payload.sub);
+            return;
+          }
+        } catch {}
       }
 
     } catch (err) {
       console.log("Error cargando usuario:", err);
     }
 
+  }
+
+  // ==========================================
+  // HELPER: leer usuarioId de donde sea
+  // ==========================================
+
+  async function obtenerUid(): Promise<number | null> {
+
+    if (usuarioId) return usuarioId;
+
+    // Intentar AsyncStorage con varias keys
+    const keys = ["@usuario", "usuario"];
+    for (const key of keys) {
+      try {
+        const raw = await AsyncStorage.getItem(key);
+        if (raw && raw !== "undefined" && raw !== "null") {
+          const u = JSON.parse(raw);
+          if (u?.id) {
+            setUsuarioId(u.id);
+            return u.id;
+          }
+        }
+      } catch {}
+    }
+
+    // Fallback: decodificar JWT
+    try {
+      const token = await AsyncStorage.getItem("@token");
+      if (token && token !== "undefined") {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const id = payload?.id || payload?.userId || payload?.sub;
+        if (id) {
+          setUsuarioId(id);
+          return id;
+        }
+      }
+    } catch {}
+
+    return null;
   }
 
   // ==========================================
@@ -262,17 +318,7 @@ export default function App() {
 
   async function cargarFavoritos() {
 
-    let uid = usuarioId;
-
-    if (!uid) {
-      try {
-        const stored = await AsyncStorage.getItem("@usuario");
-        if (stored) {
-          uid = JSON.parse(stored).id;
-          setUsuarioId(uid);
-        }
-      } catch (e) {}
-    }
+    const uid = await obtenerUid();
 
     if (!uid) return;
 
@@ -306,21 +352,7 @@ export default function App() {
 
     if (!personaje) return;
 
-    // Si usuarioId aún no cargó, intentar leerlo de AsyncStorage directamente
-    let uid = usuarioId;
-
-    if (!uid) {
-      try {
-        const data = await AsyncStorage.getItem("@usuario");
-        if (data) {
-          const u = JSON.parse(data);
-          uid = u.id;
-          setUsuarioId(uid);
-        }
-      } catch (e) {
-        console.log("Error leyendo usuario:", e);
-      }
-    }
+    const uid = await obtenerUid();
 
     if (!uid) {
       showToast("error", "Error", "No hay sesión activa");
@@ -1435,10 +1467,10 @@ const styles = StyleSheet.create({
   },
 
   modalBox: {
-    width: isDesktop ? 380 : "92%",
-    maxHeight: isDesktop ? "80vh" as any : "90%" as any,
-    borderRadius: 30,
-    padding: 20,
+    width: isDesktop ? 320 : "85%",
+    maxHeight: "75vh" as any,
+    borderRadius: 24,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#9333ea",
   },
@@ -1452,10 +1484,10 @@ const styles = StyleSheet.create({
   },
 
   imagen: {
-    width: isDesktop ? 160 : (width - 100) / 2,
-    height: isDesktop ? 160 : (width - 100) / 2,
-    borderRadius: 22,
-    margin: 5,
+    width: isDesktop ? 130 : (width - 110) / 2,
+    height: isDesktop ? 130 : (width - 110) / 2,
+    borderRadius: 16,
+    margin: 4,
   },
 
   cerrarBtn: {
