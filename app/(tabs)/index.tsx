@@ -196,15 +196,15 @@ export default function App() {
   useEffect(() => {
 
     cargarUsuario();
-    cargarUltimosConsultados();
 
   }, []);
 
-  // Cuando tengamos el usuarioId, cargamos favoritos del backend
+  // Cuando tengamos el usuarioId, cargamos favoritos y últimos consultados del backend
   useEffect(() => {
 
     if (usuarioId !== null) {
       cargarFavoritos();
+      cargarUltimosConsultados(usuarioId);
     }
 
   }, [usuarioId]);
@@ -486,18 +486,25 @@ export default function App() {
   // ULTIMOS
   // ==========================================
 
-  async function cargarUltimosConsultados() {
+  async function cargarUltimosConsultados(uid?: number) {
 
     try {
 
-      const data =
-        await AsyncStorage.getItem(
-          "@anime_ultimos"
-        );
+      const id = uid ?? usuarioId;
+
+      if (!id) return;
+
+      const key = `@anime_ultimos_${id}`;
+
+      const data = await AsyncStorage.getItem(key);
 
       if (data) {
         setUltimosConsultados(
           JSON.parse(data)
+        );
+      } else {
+        setUltimosConsultados(
+          ultimosConsultadosInicial
         );
       }
 
@@ -513,8 +520,14 @@ export default function App() {
 
     try {
 
+      const uid = await obtenerUid();
+
+      if (!uid) return;
+
+      const key = `@anime_ultimos_${uid}`;
+
       await AsyncStorage.setItem(
-        "@anime_ultimos",
+        key,
         JSON.stringify(nuevos)
       );
 
