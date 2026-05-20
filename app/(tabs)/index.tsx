@@ -262,11 +262,23 @@ export default function App() {
 
   async function cargarFavoritos() {
 
-    if (!usuarioId) return;
+    let uid = usuarioId;
+
+    if (!uid) {
+      try {
+        const stored = await AsyncStorage.getItem("@usuario");
+        if (stored) {
+          uid = JSON.parse(stored).id;
+          setUsuarioId(uid);
+        }
+      } catch (e) {}
+    }
+
+    if (!uid) return;
 
     try {
 
-      const data = await obtenerFavoritos(usuarioId);
+      const data = await obtenerFavoritos(uid);
 
       // El backend devuelve array de favoritos
       // Normalizamos para que tengan la misma forma que antes
@@ -294,7 +306,23 @@ export default function App() {
 
     if (!personaje) return;
 
-    if (!usuarioId) {
+    // Si usuarioId aún no cargó, intentar leerlo de AsyncStorage directamente
+    let uid = usuarioId;
+
+    if (!uid) {
+      try {
+        const data = await AsyncStorage.getItem("@usuario");
+        if (data) {
+          const u = JSON.parse(data);
+          uid = u.id;
+          setUsuarioId(uid);
+        }
+      } catch (e) {
+        console.log("Error leyendo usuario:", e);
+      }
+    }
+
+    if (!uid) {
       showToast("error", "Error", "No hay sesión activa");
       return;
     }
@@ -322,7 +350,7 @@ export default function App() {
 
     // Preparar data para el backend
     const dataFavorito = {
-      usuario_id: usuarioId,
+      usuario_id: uid,
       anime: nombreAnime,
       nombre: personaje.nombre,
       edad: personaje.edad ? String(personaje.edad) : null,
