@@ -17,7 +17,6 @@ import {
   ScrollView,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   Dimensions,
   StatusBar,
   Platform,
@@ -1002,7 +1001,7 @@ export default function App() {
 
   return (
 
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
 
       <StatusBar
         barStyle="light-content"
@@ -1194,7 +1193,7 @@ export default function App() {
 
       </View>
 
-    </SafeAreaView>
+    </View>
 
   );
 
@@ -1209,10 +1208,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#050816",
-    ...(Platform.OS === "web" && {
-      height: "100vh" as any,
-      overflow: "hidden" as any,
-    }),
+    ...(Platform.OS === "web"
+      ? {
+          height: "100vh" as any,
+          maxHeight: "100vh" as any,
+          display: "flex" as any,
+          flexDirection: "column" as any,
+          overflow: "hidden" as any,
+        }
+      : {}),
   },
 
   hero: {
@@ -1462,6 +1466,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderTopWidth: 1,
     borderTopColor: "#27272a",
+    flexShrink: 0,
   },
 
   tab: {
