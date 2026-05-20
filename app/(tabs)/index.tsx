@@ -1101,6 +1101,7 @@ export default function App() {
                 index
               ) => index.toString()}
               numColumns={2}
+              style={{ maxHeight: isDesktop ? 340 : undefined }}
               renderItem={({ item }) => (
 
                 <Image
@@ -1406,11 +1407,8 @@ const styles = StyleSheet.create({
   },
 
   modalBox: {
-    width:
-      isDesktop
-        ? 430
-        : "92%",
-
+    width: isDesktop ? 380 : "92%",
+    maxHeight: isDesktop ? "80vh" as any : "90%" as any,
     borderRadius: 30,
     padding: 20,
     borderWidth: 1,
@@ -1426,16 +1424,8 @@ const styles = StyleSheet.create({
   },
 
   imagen: {
-    width:
-      isDesktop
-        ? 175
-        : (width - 100) / 2,
-
-    height:
-      isDesktop
-        ? 175
-        : (width - 100) / 2,
-
+    width: isDesktop ? 160 : (width - 100) / 2,
+    height: isDesktop ? 160 : (width - 100) / 2,
     borderRadius: 22,
     margin: 5,
   },
