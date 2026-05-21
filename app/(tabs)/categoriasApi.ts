@@ -44,7 +44,7 @@ export async function obtenerCategorias(usuarioId: number) {
   const headers = await getAuthHeaders();
 
   const res = await fetch(
-    `${BASE_URL}/categorias/${usuarioId}`,
+    `${BASE_URL}/categorias/usuario/${usuarioId}`,
     { headers }
   );
 

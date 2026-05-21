@@ -201,10 +201,10 @@ export default function Categorias() {
 
     try {
 
-      // Intentar leer desde @usuario
+      // Primero intentar leer @usuario con validación estricta
       const raw = await AsyncStorage.getItem("@usuario");
 
-      if (raw && raw !== "undefined" && raw !== "null" && raw !== "") {
+      if (raw && raw !== "undefined" && raw !== "null" && raw.trim() !== "") {
 
         try {
 
@@ -219,20 +219,26 @@ export default function Categorias() {
 
       }
 
-      // Fallback: decodificar JWT
+      // Fallback: decodificar el JWT directamente
       const token = await AsyncStorage.getItem("@token");
 
-      if (token && token !== "undefined" && token !== "null" && token !== "") {
+      if (token && token !== "undefined" && token !== "null" && token.trim() !== "") {
 
         try {
 
-          const payload = JSON.parse(atob(token.split(".")[1]));
+          const parts = token.split(".");
 
-          const id = payload?.id || payload?.userId || payload?.sub;
+          if (parts.length === 3) {
 
-          if (id) {
-            setUsuarioId(id);
-            return;
+            const payload = JSON.parse(atob(parts[1]));
+
+            const id = payload?.id || payload?.userId || payload?.sub;
+
+            if (id) {
+              setUsuarioId(Number(id));
+              return;
+            }
+
           }
 
         } catch {}
