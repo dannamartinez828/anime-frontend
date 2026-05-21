@@ -36,6 +36,8 @@ import {
 
 import { router } from "expo-router";
 
+import Categorias from "./categorias";
+
 const { width } = Dimensions.get("window");
 
 const isDesktop = width > 900;
@@ -131,6 +133,13 @@ const animes = [
     label: "Favoritos",
     emoji: "❤️",
     color: ["#db2777", "#9333ea"],
+  },
+
+  {
+    key: "categorias",
+    label: "Categorías",
+    emoji: "📚",
+    color: ["#0891b2", "#6366f1"],
   },
 ];
 
@@ -1098,6 +1107,8 @@ export default function App() {
         ? renderResumen()
         : animeSeleccionado === "favoritos"
         ? renderFavoritos()
+        : animeSeleccionado === "categorias"
+        ? <Categorias />
         : renderBusqueda()}
 
       {/* TOAST */}
