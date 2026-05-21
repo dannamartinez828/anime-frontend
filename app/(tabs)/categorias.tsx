@@ -201,47 +201,23 @@ export default function Categorias() {
 
     try {
 
-      // Primero intentar leer @usuario con validación estricta
       const raw = await AsyncStorage.getItem("@usuario");
 
-      if (raw && raw !== "undefined" && raw !== "null" && raw.trim() !== "") {
+      if (raw) {
 
-        try {
+        const u = JSON.parse(raw);
 
-          const u = JSON.parse(raw);
-
-          if (u?.id) {
-            setUsuarioId(u.id);
-            return;
-          }
-
-        } catch {}
+        if (u?.id) { setUsuarioId(u.id); return; }
 
       }
 
-      // Fallback: decodificar el JWT directamente
       const token = await AsyncStorage.getItem("@token");
 
-      if (token && token !== "undefined" && token !== "null" && token.trim() !== "") {
+      if (token) {
 
-        try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
 
-          const parts = token.split(".");
-
-          if (parts.length === 3) {
-
-            const payload = JSON.parse(atob(parts[1]));
-
-            const id = payload?.id || payload?.userId || payload?.sub;
-
-            if (id) {
-              setUsuarioId(Number(id));
-              return;
-            }
-
-          }
-
-        } catch {}
+        if (payload?.id) setUsuarioId(payload.id);
 
       }
 
@@ -953,52 +929,65 @@ export default function Categorias() {
         animationType="slide"
       >
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={s.overlay}
-        >
+        <View style={s.overlayAnime}>
 
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={s.modalAnimeWrap}>
 
+            {/* HEADER con gradiente y color de categoría */}
             <LinearGradient
-              colors={["#111827", "#1e1b4b"]}
-              style={[s.modalBox, { maxHeight: undefined }]}
+              colors={[categoriaActiva?.color || "#9333ea", "#0f172a"]}
+              style={s.modalAnimeHeader}
             >
 
-              <Text style={s.modalTitulo}>
-                {editandoAnime ? "✏️ Editar anime" : "🎌 Agregar anime"}
+              <Text style={s.modalAnimeEmoji}>🎌</Text>
+
+              <Text style={s.modalAnimeTituloHeader}>
+                {editandoAnime ? "Editar anime" : "Nuevo anime"}
               </Text>
 
-              <Text style={s.modalLabel}>Título *</Text>
+              <TouchableOpacity
+                style={s.modalAnimeCerrarX}
+                onPress={() => setModalAnime(false)}
+              >
+                <Text style={s.modalAnimeCerrarXTxt}>✕</Text>
+              </TouchableOpacity>
+
+            </LinearGradient>
+
+            {/* BODY scrollable */}
+            <ScrollView
+              style={s.modalAnimeBody}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+
+              {/* Título */}
+              <Text style={s.modalAnimeLabel}>✏️ Título *</Text>
 
               <TextInput
-                placeholder="Ej: Naruto, Attack on Titan..."
-                placeholderTextColor="#6b7280"
+                placeholder="Ej: Attack on Titan, Naruto..."
+                placeholderTextColor="#4b5563"
                 value={aTitulo}
                 onChangeText={setATitulo}
-                style={s.input}
+                style={s.modalAnimeInput}
               />
 
-              <Text style={s.modalLabel}>Género</Text>
+              {/* Género */}
+              <Text style={s.modalAnimeLabel}>🏷️ Género</Text>
 
               <TextInput
-                placeholder="Ej: Shonen, Mecha, Isekai..."
-                placeholderTextColor="#6b7280"
+                placeholder="Ej: Shonen, Isekai, Mecha..."
+                placeholderTextColor="#4b5563"
                 value={aGenero}
                 onChangeText={setAGenero}
-                style={s.input}
+                style={s.modalAnimeInput}
               />
 
-              <Text style={s.modalLabel}>Estado</Text>
+              {/* Estado */}
+              <Text style={s.modalAnimeLabel}>📊 Estado</Text>
 
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ marginBottom: 14 }}
-              >
+              <View style={s.estadosGrid}>
 
                 {ESTADOS.map(e => (
 
@@ -1006,83 +995,104 @@ export default function Categorias() {
                     key={e.value}
                     onPress={() => setAEstado(e.value)}
                     style={[
-                      s.estadoBtn,
-                      {
-                        borderColor: e.color,
-                        backgroundColor:
-                          aEstado === e.value
-                            ? e.color + "33"
-                            : "transparent",
-                      },
+                      s.estadoChip,
+                      aEstado === e.value
+                        ? { backgroundColor: e.color, borderColor: e.color }
+                        : { backgroundColor: "#1f2937", borderColor: "#374151" },
                     ]}
                   >
-                    <Text style={[s.estadoBtnTxt, { color: e.color }]}>
+
+                    <Text style={[
+                      s.estadoChipTxt,
+                      { color: aEstado === e.value ? "white" : "#9ca3af" }
+                    ]}>
                       {e.label}
                     </Text>
+
                   </TouchableOpacity>
 
                 ))}
 
-              </ScrollView>
+              </View>
 
-              <Text style={s.modalLabel}>URL de imagen (opcional)</Text>
+              {/* URL imagen */}
+              <Text style={s.modalAnimeLabel}>🖼️ URL de imagen</Text>
 
               <TextInput
-                placeholder="https://..."
-                placeholderTextColor="#6b7280"
+                placeholder="https://imagen.com/poster.jpg"
+                placeholderTextColor="#4b5563"
                 value={aImagen}
                 onChangeText={setAImagen}
-                style={s.input}
+                style={s.modalAnimeInput}
                 autoCapitalize="none"
+                autoCorrect={false}
               />
 
-              <Text style={s.modalLabel}>Descripción (opcional)</Text>
+              {/* Preview imagen si hay URL */}
+              {aImagen.trim().length > 8 && (
+
+                <Image
+                  source={{ uri: aImagen.trim() }}
+                  style={s.modalAnimeImgPreview}
+                  resizeMode="cover"
+                />
+
+              )}
+
+              {/* Descripción */}
+              <Text style={s.modalAnimeLabel}>📖 Descripción</Text>
 
               <TextInput
-                placeholder="Breve descripción del anime..."
-                placeholderTextColor="#6b7280"
+                placeholder="¿De qué trata este anime?"
+                placeholderTextColor="#4b5563"
                 value={aDescripcion}
                 onChangeText={setADescripcion}
-                style={[s.input, { height: 80, textAlignVertical: "top" }]}
+                style={[s.modalAnimeInput, s.modalAnimeInputMulti]}
                 multiline
+                numberOfLines={3}
+                textAlignVertical="top"
               />
 
-              <Text style={s.modalLabel}>Nota personal (opcional)</Text>
+              {/* Nota personal */}
+              <Text style={s.modalAnimeLabel}>💬 Nota personal</Text>
 
               <TextInput
                 placeholder="Lo que quieras recordar sobre este anime..."
-                placeholderTextColor="#6b7280"
+                placeholderTextColor="#4b5563"
                 value={aNota}
                 onChangeText={setANota}
-                style={[s.input, { height: 70, textAlignVertical: "top" }]}
+                style={[s.modalAnimeInput, s.modalAnimeInputMulti]}
                 multiline
+                numberOfLines={3}
+                textAlignVertical="top"
               />
 
-              <View style={s.modalBtns}>
+            </ScrollView>
 
-                <TouchableOpacity
-                  style={s.btnCancelar}
-                  onPress={() => setModalAnime(false)}
-                >
-                  <Text style={s.btnCancelarTxt}>Cancelar</Text>
-                </TouchableOpacity>
+            {/* FOOTER con botones */}
+            <View style={s.modalAnimeBtns}>
 
-                <TouchableOpacity
-                  style={[s.btnGuardar, { backgroundColor: categoriaActiva?.color || "#9333ea" }]}
-                  onPress={guardarAnime}
-                >
-                  <Text style={s.btnGuardarTxt}>
-                    {editandoAnime ? "Actualizar" : "Agregar"}
-                  </Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={s.modalAnimeBtnCancelar}
+                onPress={() => setModalAnime(false)}
+              >
+                <Text style={s.modalAnimeBtnCancelarTxt}>Cancelar</Text>
+              </TouchableOpacity>
 
-              </View>
+              <TouchableOpacity
+                style={[s.modalAnimeBtnGuardar, { backgroundColor: categoriaActiva?.color || "#9333ea" }]}
+                onPress={guardarAnime}
+              >
+                <Text style={s.modalAnimeBtnGuardarTxt}>
+                  {editandoAnime ? "💾 Guardar" : "➕ Agregar"}
+                </Text>
+              </TouchableOpacity>
 
-            </LinearGradient>
+            </View>
 
-          </ScrollView>
+          </View>
 
-        </KeyboardAvoidingView>
+        </View>
 
       </Modal>
 
@@ -1606,6 +1616,156 @@ const s = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 14,
+  },
+
+  // ── modal anime rediseñado ──
+
+  overlayAnime: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.88)",
+    justifyContent: "flex-end",
+  },
+
+  modalAnimeWrap: {
+    backgroundColor: "#0f172a",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: "92%",
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#1e293b",
+  },
+
+  modalAnimeHeader: {
+    paddingTop: 24,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  modalAnimeEmoji: {
+    fontSize: 26,
+  },
+
+  modalAnimeTituloHeader: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    flex: 1,
+  },
+
+  modalAnimeCerrarX: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  modalAnimeCerrarXTxt: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+
+  modalAnimeBody: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+
+  modalAnimeLabel: {
+    color: "#a78bfa",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 14,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  modalAnimeInput: {
+    backgroundColor: "#1e293b",
+    color: "white",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    fontSize: 15,
+    borderWidth: 1.5,
+    borderColor: "#334155",
+  },
+
+  modalAnimeInputMulti: {
+    height: 90,
+    paddingTop: 13,
+  },
+
+  modalAnimeImgPreview: {
+    width: "100%",
+    height: 140,
+    borderRadius: 14,
+    marginTop: 10,
+    backgroundColor: "#1e293b",
+  },
+
+  estadosGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 4,
+  },
+
+  estadoChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+
+  estadoChipTxt: {
+    fontWeight: "700",
+    fontSize: 13,
+  },
+
+  modalAnimeBtns: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#1e293b",
+    backgroundColor: "#0f172a",
+  },
+
+  modalAnimeBtnCancelar: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "#1e293b",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+
+  modalAnimeBtnCancelarTxt: {
+    color: "#94a3b8",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  modalAnimeBtnGuardar: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: "center",
+  },
+
+  modalAnimeBtnGuardarTxt: {
+    color: "white",
+    fontWeight: "800",
+    fontSize: 15,
   },
 
 });
