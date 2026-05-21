@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import React, {
+  useState,
+  useRef,
+} from "react";
 
 import {
   View,
@@ -6,214 +9,517 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Animated,
+  Dimensions,
 } from "react-native";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { LinearGradient } from "expo-linear-gradient";
 
 import { login } from "./authApi";
 
 import { useRouter } from "expo-router";
 
+const { width } = Dimensions.get("window");
+
+// =============================================
+// VALIDACIÓN DE EMAIL
+// =============================================
+
+function validarEmail(email: string): string | null {
+
+  const tieneArroba = email.includes("@");
+  const tienePunto = email.includes(".");
+
+  if (!tieneArroba) {
+    return "¡Uy! ˚₊‧꒰ა 📧 ໒꒱ ‧₊˚  Ese correo no tiene @ — ¿lo revisas? No te borro lo que escribiste 🌸";
+  }
+
+  if (!tienePunto) {
+    return "¡Casi! ٩(◕‿◕｡)۶  Al correo le falta un punto (como .com o .co) — intenta de nuevo 💫";
+  }
+
+  const partes = email.split("@");
+  if (partes.length !== 2 || partes[0] === "" || partes[1] === "") {
+    return "˚˖𓍢ִ໋🌷͙֒✧˚. Ese correo no se ve válido todavía — revisa que tenga algo antes y después del @ 🌼";
+  }
+
+  return null;
+
+}
+
+// =============================================
+// TOAST COMPONENT
+// =============================================
+
+type ToastTipo = "success" | "error" | "warning" | "info" | null;
+
+interface ToastProps {
+  tipo: ToastTipo;
+  mensaje: string;
+  onClose: () => void;
+}
+
+function Toast({ tipo, mensaje, onClose }: ToastProps) {
+
+  if (!tipo) return null;
+
+  const config = {
+    success: {
+      bg: "#052e16",
+      border: "#16a34a",
+      textColor: "#4ade80",
+      emoji: "✅",
+    },
+    error: {
+      bg: "#2d0a0a",
+      border: "#dc2626",
+      textColor: "#f87171",
+      emoji: "❌",
+    },
+    warning: {
+      bg: "#2d1a00",
+      border: "#f59e0b",
+      textColor: "#fbbf24",
+      emoji: "⚠️",
+    },
+    info: {
+      bg: "#0c1a3a",
+      border: "#3b82f6",
+      textColor: "#93c5fd",
+      emoji: "💫",
+    },
+  }[tipo];
+
+  return (
+
+    <View style={[
+      s.toast,
+      {
+        backgroundColor: config.bg,
+        borderColor: config.border,
+      }
+    ]}>
+
+      <Text style={s.toastEmoji}>
+        {config.emoji}
+      </Text>
+
+      <Text style={[s.toastMensaje, { color: config.textColor }]}>
+        {mensaje}
+      </Text>
+
+      <TouchableOpacity
+        onPress={onClose}
+        style={s.toastX}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Text style={[s.toastXTxt, { color: config.textColor }]}>✕</Text>
+      </TouchableOpacity>
+
+    </View>
+
+  );
+
+}
+
+// =============================================
+// LOGIN
+// =============================================
+
 export default function Login() {
 
   const router = useRouter();
 
-  const [email, setEmail] =
-    useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [presionado, setPresionado] = useState(false);
 
-  const [password, setPassword] =
-    useState("");
+  const [toast, setToast] = useState<{
+    tipo: ToastTipo;
+    mensaje: string;
+  }>({ tipo: null, mensaje: "" });
 
-  const [mensaje, setMensaje] =
-    useState("");
+  const scaleBtn = useRef(new Animated.Value(1)).current;
 
-  const [tipoMensaje, setTipoMensaje] =
-    useState<"error" | "success" | "">("");
+  function cerrarToast() {
+    setToast({ tipo: null, mensaje: "" });
+  }
+
+  function onEmailChange(texto: string) {
+    setEmail(texto);
+    if (emailError) {
+      // Revalida en tiempo real para limpiar el error cuando corrija
+      const err = validarEmail(texto);
+      if (!err) setEmailError("");
+    }
+  }
+
+  function onEmailBlur() {
+    if (email.trim() !== "") {
+      const err = validarEmail(email.trim());
+      if (err) setEmailError(err);
+      else setEmailError("");
+    }
+  }
+
+  function animarBtn() {
+    Animated.sequence([
+      Animated.timing(scaleBtn, {
+        toValue: 0.94,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleBtn, {
+        toValue: 1,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }
 
   async function handleLogin() {
 
+    animarBtn();
+
+    setToast({ tipo: null, mensaje: "" });
+
+    if (!email || !password) {
+      setToast({
+        tipo: "warning",
+        mensaje: "˚₊‧꒰ა 🌸 ໒꒱‧₊˚  ¡Espera! Necesito que llenes todos los campos para poder entrar ✨",
+      });
+      return;
+    }
+
+    const errEmail = validarEmail(email.trim());
+    if (errEmail) {
+      setEmailError(errEmail);
+      return;
+    }
+
+    setPresionado(true);
+
     try {
 
-      setMensaje("");
-      setTipoMensaje("");
+      const data = await login(email.trim(), password);
 
-      // validar campos
-      if (!email || !password) {
+      await AsyncStorage.setItem("@token", data.token);
+      await AsyncStorage.setItem("@usuario", JSON.stringify(data.user));
 
-        setTipoMensaje("error");
+      setToast({
+        tipo: "success",
+        mensaje: "ヾ(≧▽≦*)o  ¡Bienvenida de vuelta! Tu sesión se inició correctamente 🌟✨",
+      });
 
-        setMensaje(
-          "Todos los campos son obligatorios"
-        );
-
-        return;
-      }
-
-      const data =
-  await login(
-    email,
-    password
-  );
-
-      // guardar token
-      await AsyncStorage.setItem(
-        "@token",
-        data.token
-      );
-
-      // guardar usuario
-      await AsyncStorage.setItem(
-        "@usuario",
-        JSON.stringify(data.user)
-      );
-
-      // mensaje éxito
-      setTipoMensaje("success");
-
-      setMensaje(
-        "Inicio de sesión exitoso ✨"
-      );
-
-      // navegar
       setTimeout(() => {
-
         router.replace("/(tabs)");
-
-      }, 1200);
+      }, 1600);
 
     } catch (err: any) {
 
-      setTipoMensaje("error");
+      const msg: string = err.message || "";
 
-      setMensaje(
-        err.message ||
-        "Error al iniciar sesión"
-      );
+      if (
+        msg.toLowerCase().includes("no encontrado") ||
+        msg.toLowerCase().includes("not found") ||
+        msg.toLowerCase().includes("invalid") ||
+        msg.toLowerCase().includes("incorrect") ||
+        msg.toLowerCase().includes("credenciales") ||
+        msg.toLowerCase().includes("wrong")
+      ) {
+        setToast({
+          tipo: "error",
+          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta — ¿lo intentamos de nuevo? 💭",
+        });
+      } else {
+        setToast({
+          tipo: "error",
+          mensaje: `(>_<)  Algo salió mal: ${msg} — intenta en un momento 🌙`,
+        });
+      }
 
+    } finally {
+      setPresionado(false);
     }
 
   }
 
   return (
 
-    <View style={styles.container}>
+    <View style={s.container}>
 
-      <Text style={styles.title}>
-        🔐 Login
-      </Text>
-
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
+      {/* TOAST */}
+      <Toast
+        tipo={toast.tipo}
+        mensaje={toast.mensaje}
+        onClose={cerrarToast}
       />
 
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      {/* HEADER */}
+      <View style={s.header}>
+        <Text style={s.headerEmoji}>✨</Text>
+        <Text style={s.headerTitle}>Iniciar sesión</Text>
+        <Text style={s.headerSub}>
+          ¡Qué bueno verte! (｡♥‿♥｡)
+        </Text>
+      </View>
 
-      {mensaje ? (
-        <Text
-          style={
-            tipoMensaje === "error"
-              ? styles.error
-              : styles.success
-          }
+      {/* FORM */}
+      <View style={s.form}>
+
+        {/* EMAIL */}
+        <Text style={s.label}>📧 Correo electrónico</Text>
+
+        <TextInput
+          placeholder="tucorreo@ejemplo.com"
+          placeholderTextColor="#4b5563"
+          style={[
+            s.input,
+            emailError ? s.inputError : {},
+            email && !emailError ? s.inputOk : {},
+          ]}
+          value={email}
+          onChangeText={onEmailChange}
+          onBlur={onEmailBlur}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+        />
+
+        {emailError ? (
+          <Text style={s.emailErrorTxt}>{emailError}</Text>
+        ) : null}
+
+        {/* PASSWORD */}
+        <Text style={s.label}>🔒 Contraseña</Text>
+
+        <TextInput
+          placeholder="Tu contraseña secreta ✨"
+          placeholderTextColor="#4b5563"
+          style={s.input}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        {/* BOTÓN ENTRAR */}
+        <Animated.View style={{ transform: [{ scale: scaleBtn }], marginTop: 20 }}>
+
+          <TouchableOpacity
+            onPress={handleLogin}
+            activeOpacity={0.85}
+            disabled={presionado}
+          >
+
+            <LinearGradient
+              colors={presionado ? ["#581c87", "#1e1b4b"] : ["#9333ea", "#ec4899"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.btnPrincipal}
+            >
+
+              <Text style={s.btnPrincipalTxt}>
+                {presionado ? "⏳ Entrando..." : "🚀 ¡Entrar!"}
+              </Text>
+
+            </LinearGradient>
+
+          </TouchableOpacity>
+
+        </Animated.View>
+
+        {/* LINK REGISTRO */}
+        <TouchableOpacity
+          onPress={() => router.push("/register")}
+          style={s.linkContainer}
+          activeOpacity={0.7}
         >
-          {mensaje}
-        </Text>
-      ) : null}
 
-      <TouchableOpacity
-        style={styles.btn}
-        onPress={handleLogin}
-      >
-        <Text style={styles.btnText}>
-          Entrar
-        </Text>
-      </TouchableOpacity>
+          <Text style={s.linkTxt}>
+            ¿No tienes cuenta aún?{"  "}
+            <Text style={s.linkAccion}>Créala aquí ✨</Text>
+          </Text>
 
-      <TouchableOpacity
-        onPress={() =>
-          router.push("/register")
-        }
-      >
-        <Text style={styles.link}>
-          Crear cuenta
-        </Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
+
+      </View>
 
     </View>
+
   );
+
 }
 
-const styles = StyleSheet.create({
+// =============================================
+// STYLES
+// =============================================
+
+const s = StyleSheet.create({
 
   container: {
     flex: 1,
     backgroundColor: "#050816",
     justifyContent: "center",
-    padding: 20,
+    padding: 24,
   },
 
-  title: {
-    color: "white",
-    fontSize: 30,
-    textAlign: "center",
-    marginBottom: 30,
+  // ── toast ──
+
+  toast: {
+    position: "absolute",
+    top: 40,
+    left: 16,
+    right: 16,
+    zIndex: 9999,
+    borderWidth: 1.5,
+    borderRadius: 18,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  toastEmoji: {
+    fontSize: 22,
+    flexShrink: 0,
+    marginTop: 1,
+  },
+
+  toastMensaje: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+
+  toastX: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+
+  toastXTxt: {
+    fontSize: 13,
     fontWeight: "bold",
+  },
+
+  // ── header ──
+
+  header: {
+    alignItems: "center",
+    marginBottom: 36,
+  },
+
+  headerEmoji: {
+    fontSize: 52,
+    marginBottom: 10,
+  },
+
+  headerTitle: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "900",
+    marginBottom: 6,
+  },
+
+  headerSub: {
+    color: "#a78bfa",
+    fontSize: 15,
+    fontWeight: "500",
+  },
+
+  // ── form ──
+
+  form: {
+    backgroundColor: "#0f172a",
+    borderRadius: 24,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: "#1e293b",
+  },
+
+  label: {
+    color: "#c4b5fd",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
 
   input: {
-    backgroundColor: "#111827",
+    backgroundColor: "#1e293b",
     color: "white",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#312e81",
-  },
-
-  btn: {
-    backgroundColor: "#9333ea",
-    padding: 15,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-
-  btnText: {
-    color: "white",
-    fontWeight: "bold",
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: "#334155",
     fontSize: 15,
   },
 
-  error: {
-    color: "#f87171",
-    textAlign: "center",
-    marginBottom: 10,
-    fontWeight: "bold",
+  inputError: {
+    borderColor: "#dc2626",
+    backgroundColor: "#1a0a0a",
   },
 
-  success: {
-    color: "#4ade80",
-    textAlign: "center",
-    marginBottom: 10,
-    fontWeight: "bold",
+  inputOk: {
+    borderColor: "#16a34a",
   },
 
-  link: {
-    color: "#60a5fa",
+  emailErrorTxt: {
+    color: "#fbbf24",
+    fontSize: 12,
+    fontWeight: "600",
+    marginBottom: 10,
+    lineHeight: 18,
+    paddingHorizontal: 4,
+  },
+
+  // ── botones ──
+
+  btnPrincipal: {
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: "center",
+    shadowColor: "#9333ea",
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+
+  btnPrincipalTxt: {
+    color: "white",
+    fontWeight: "900",
+    fontSize: 17,
+    letterSpacing: 0.5,
+  },
+
+  linkContainer: {
+    marginTop: 18,
+    alignItems: "center",
+  },
+
+  linkTxt: {
+    color: "#94a3b8",
+    fontSize: 14,
     textAlign: "center",
-    marginTop: 15,
-    fontWeight: "bold",
+  },
+
+  linkAccion: {
+    color: "#a78bfa",
+    fontWeight: "700",
   },
 
 });
