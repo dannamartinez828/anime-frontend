@@ -827,6 +827,46 @@ export default function App() {
                       ✨ {item.personaje.nombre}
                     </Text>
 
+                    {/* INFO DEL PERSONAJE */}
+                    <View style={styles.infoBox}>
+
+                      {item.personaje.edad ? (
+                        <View style={styles.infoFila}>
+                          <Text style={styles.infoLabel}>🎂 Edad</Text>
+                          <Text style={styles.infoValor}>{item.personaje.edad}</Text>
+                        </View>
+                      ) : null}
+
+                      {item.personaje.raza ? (
+                        <View style={styles.infoFila}>
+                          <Text style={styles.infoLabel}>🧬 Raza</Text>
+                          <Text style={styles.infoValor}>{item.personaje.raza}</Text>
+                        </View>
+                      ) : null}
+
+                      {item.personaje.poder ? (
+                        <View style={styles.infoFila}>
+                          <Text style={styles.infoLabel}>⚡ Poder</Text>
+                          <Text style={styles.infoValor}>{item.personaje.poder}</Text>
+                        </View>
+                      ) : null}
+
+                      {item.personaje.categoria ? (
+                        <View style={styles.infoFila}>
+                          <Text style={styles.infoLabel}>🏅 Categoría</Text>
+                          <Text style={styles.infoValor}>{item.personaje.categoria}</Text>
+                        </View>
+                      ) : null}
+
+                      {item.personaje.descripcion ? (
+                        <View style={styles.infoDescFila}>
+                          <Text style={styles.infoLabel}>📖 Descripción</Text>
+                          <Text style={styles.infoDesc}>{item.personaje.descripcion}</Text>
+                        </View>
+                      ) : null}
+
+                    </View>
+
                     <TouchableOpacity
                       style={styles.btnMini}
                       onPress={() => {
@@ -926,6 +966,46 @@ export default function App() {
               <Text style={styles.nombreResumen}>
                 ✨ {item.nombre}
               </Text>
+
+              {/* INFO DEL PERSONAJE */}
+              <View style={styles.infoBox}>
+
+                {item.edad ? (
+                  <View style={styles.infoFila}>
+                    <Text style={styles.infoLabel}>🎂 Edad</Text>
+                    <Text style={styles.infoValor}>{item.edad}</Text>
+                  </View>
+                ) : null}
+
+                {item.raza ? (
+                  <View style={styles.infoFila}>
+                    <Text style={styles.infoLabel}>🧬 Raza</Text>
+                    <Text style={styles.infoValor}>{item.raza}</Text>
+                  </View>
+                ) : null}
+
+                {item.poder ? (
+                  <View style={styles.infoFila}>
+                    <Text style={styles.infoLabel}>⚡ Poder</Text>
+                    <Text style={styles.infoValor}>{item.poder}</Text>
+                  </View>
+                ) : null}
+
+                {item.categoria ? (
+                  <View style={styles.infoFila}>
+                    <Text style={styles.infoLabel}>🏅 Categoría</Text>
+                    <Text style={styles.infoValor}>{item.categoria}</Text>
+                  </View>
+                ) : null}
+
+                {item.descripcion ? (
+                  <View style={styles.infoDescFila}>
+                    <Text style={styles.infoLabel}>📖 Descripción</Text>
+                    <Text style={styles.infoDesc}>{item.descripcion}</Text>
+                  </View>
+                ) : null}
+
+              </View>
 
               <TouchableOpacity
                 style={styles.btnMini}
@@ -1056,6 +1136,46 @@ export default function App() {
             <Text style={styles.nombrePrincipal}>
               ✨ {personaje.nombre}
             </Text>
+
+            {/* INFO COMPLETA DEL PERSONAJE */}
+            <View style={styles.infoBox}>
+
+              {personaje.edad ? (
+                <View style={styles.infoFila}>
+                  <Text style={styles.infoLabel}>🎂 Edad</Text>
+                  <Text style={styles.infoValor}>{personaje.edad}</Text>
+                </View>
+              ) : null}
+
+              {personaje.raza ? (
+                <View style={styles.infoFila}>
+                  <Text style={styles.infoLabel}>🧬 Raza</Text>
+                  <Text style={styles.infoValor}>{personaje.raza}</Text>
+                </View>
+              ) : null}
+
+              {personaje.poder ? (
+                <View style={styles.infoFila}>
+                  <Text style={styles.infoLabel}>⚡ Poder</Text>
+                  <Text style={styles.infoValor}>{personaje.poder}</Text>
+                </View>
+              ) : null}
+
+              {personaje.categoria ? (
+                <View style={styles.infoFila}>
+                  <Text style={styles.infoLabel}>🏅 Categoría</Text>
+                  <Text style={styles.infoValor}>{personaje.categoria}</Text>
+                </View>
+              ) : null}
+
+              {personaje.descripcion ? (
+                <View style={styles.infoDescFila}>
+                  <Text style={styles.infoLabel}>📖 Descripción</Text>
+                  <Text style={styles.infoDesc}>{personaje.descripcion}</Text>
+                </View>
+              ) : null}
+
+            </View>
 
             <TouchableOpacity
               style={styles.botonImagenes}
@@ -1487,6 +1607,55 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 10,
     alignItems: "center",
+  },
+
+  // ── info personaje ──
+
+  infoBox: {
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 14,
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 4,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "rgba(139,92,246,0.3)",
+  },
+
+  infoFila: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.06)",
+  },
+
+  infoDescFila: {
+    paddingVertical: 4,
+  },
+
+  infoLabel: {
+    color: "#a78bfa",
+    fontSize: 12,
+    fontWeight: "700",
+    flexShrink: 0,
+    marginRight: 8,
+  },
+
+  infoValor: {
+    color: "#f3f4f6",
+    fontSize: 12,
+    fontWeight: "500",
+    flex: 1,
+    textAlign: "right",
+  },
+
+  infoDesc: {
+    color: "#d1d5db",
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
   },
 
   textoMini: {
