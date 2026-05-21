@@ -732,6 +732,8 @@ export default function App() {
 
       setUsuarioId(null);
 
+      setUltimosConsultados(ultimosConsultadosInicial);
+
       showToast(
         "success",
         "Sesión cerrada",
