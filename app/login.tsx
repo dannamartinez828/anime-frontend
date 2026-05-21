@@ -64,7 +64,7 @@ export default function Login() {
       // guardar usuario
       await AsyncStorage.setItem(
         "@usuario",
-        JSON.stringify(data.usuario)
+        JSON.stringify(data.user)
       );
 
       // mensaje éxito

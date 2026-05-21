@@ -201,23 +201,41 @@ export default function Categorias() {
 
     try {
 
+      // Intentar leer desde @usuario
       const raw = await AsyncStorage.getItem("@usuario");
 
-      if (raw) {
+      if (raw && raw !== "undefined" && raw !== "null" && raw !== "") {
 
-        const u = JSON.parse(raw);
+        try {
 
-        if (u?.id) { setUsuarioId(u.id); return; }
+          const u = JSON.parse(raw);
+
+          if (u?.id) {
+            setUsuarioId(u.id);
+            return;
+          }
+
+        } catch {}
 
       }
 
+      // Fallback: decodificar JWT
       const token = await AsyncStorage.getItem("@token");
 
-      if (token) {
+      if (token && token !== "undefined" && token !== "null" && token !== "") {
 
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        try {
 
-        if (payload?.id) setUsuarioId(payload.id);
+          const payload = JSON.parse(atob(token.split(".")[1]));
+
+          const id = payload?.id || payload?.userId || payload?.sub;
+
+          if (id) {
+            setUsuarioId(id);
+            return;
+          }
+
+        } catch {}
 
       }
 
