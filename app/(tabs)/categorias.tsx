@@ -26,6 +26,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { LinearGradient } from "expo-linear-gradient";
 
+import * as ImagePicker from "expo-image-picker";
+
 import {
   obtenerCategorias,
   crearCategoria,
@@ -161,6 +163,7 @@ export default function Categorias() {
   const [aEstado, setAEstado] = useState("pendiente");
   const [aDescripcion, setADescripcion] = useState("");
   const [aImagen, setAImagen] = useState("");
+  const [modoImagen, setModoImagen] = useState<"galeria" | "url">("galeria");
   const [aNota, setANota] = useState("");
   const [editandoAnime, setEditandoAnime] =
     useState<AnimeItem | null>(null);
@@ -427,10 +430,54 @@ export default function Categorias() {
       setADescripcion("");
       setAImagen("");
       setANota("");
+      setModoImagen("galeria");
 
     }
 
     setModalAnime(true);
+
+  }
+
+  // ================================================
+  // ELEGIR IMAGEN DE GALERÍA
+  // ================================================
+
+  async function elegirDeGaleria() {
+
+    try {
+
+      const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permiso.granted) {
+        setToast({
+          type: "warning",
+          msg: "Necesito permiso para acceder a tu galería ✨",
+        });
+        return;
+      }
+
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [3, 4],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (!resultado.canceled && resultado.assets[0]) {
+        const asset = resultado.assets[0];
+        // Guardamos como base64 data URI para que funcione sin servidor
+        const base64 = `data:image/jpeg;base64,${asset.base64}`;
+        setAImagen(base64);
+      }
+
+    } catch (e) {
+      console.log("Error galería:", e);
+      setToast({
+        type: "error",
+        msg: "No se pudo abrir la galería — intenta de nuevo 🌸",
+      });
+    }
 
   }
 
@@ -1015,27 +1062,104 @@ export default function Categorias() {
 
               </View>
 
-              {/* URL imagen */}
-              <Text style={s.modalAnimeLabel}>🖼️ URL de imagen</Text>
+              {/* IMAGEN — selector galería o URL */}
+              <Text style={s.modalAnimeLabel}>🖼️ Imagen del anime</Text>
 
-              <TextInput
-                placeholder="https://imagen.com/poster.jpg"
-                placeholderTextColor="#4b5563"
-                value={aImagen}
-                onChangeText={setAImagen}
-                style={s.modalAnimeInput}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              {/* Toggle galería / URL */}
+              <View style={s.imgToggleRow}>
 
-              {/* Preview imagen si hay URL */}
-              {aImagen.trim().length > 8 && (
+                <TouchableOpacity
+                  style={[
+                    s.imgToggleBtn,
+                    modoImagen === "galeria" && {
+                      backgroundColor: categoriaActiva?.color || "#9333ea",
+                      borderColor: categoriaActiva?.color || "#9333ea",
+                    },
+                  ]}
+                  onPress={() => setModoImagen("galeria")}
+                >
+                  <Text style={[
+                    s.imgToggleTxt,
+                    modoImagen === "galeria" && { color: "white" },
+                  ]}>📱 Galería</Text>
+                </TouchableOpacity>
 
-                <Image
-                  source={{ uri: aImagen.trim() }}
-                  style={s.modalAnimeImgPreview}
-                  resizeMode="cover"
-                />
+                <TouchableOpacity
+                  style={[
+                    s.imgToggleBtn,
+                    modoImagen === "url" && {
+                      backgroundColor: categoriaActiva?.color || "#9333ea",
+                      borderColor: categoriaActiva?.color || "#9333ea",
+                    },
+                  ]}
+                  onPress={() => setModoImagen("url")}
+                >
+                  <Text style={[
+                    s.imgToggleTxt,
+                    modoImagen === "url" && { color: "white" },
+                  ]}>🔗 URL</Text>
+                </TouchableOpacity>
+
+              </View>
+
+              {/* MODO GALERÍA */}
+              {modoImagen === "galeria" && (
+
+                <TouchableOpacity
+                  style={s.btnGaleria}
+                  onPress={elegirDeGaleria}
+                  activeOpacity={0.8}
+                >
+
+                  {aImagen && aImagen.startsWith("data:") ? (
+
+                    <Image
+                      source={{ uri: aImagen }}
+                      style={s.galeriaImgSelected}
+                      resizeMode="cover"
+                    />
+
+                  ) : (
+
+                    <View style={s.galeriaPlaceholder}>
+                      <Text style={{ fontSize: 36 }}>🖼️</Text>
+                      <Text style={s.galeriaPlaceholderTxt}>
+                        Toca para elegir de tu galería
+                      </Text>
+                    </View>
+
+                  )}
+
+                </TouchableOpacity>
+
+              )}
+
+              {/* MODO URL */}
+              {modoImagen === "url" && (
+
+                <>
+
+                  <TextInput
+                    placeholder="https://imagen.com/poster.jpg"
+                    placeholderTextColor="#4b5563"
+                    value={aImagen.startsWith("data:") ? "" : aImagen}
+                    onChangeText={setAImagen}
+                    style={s.modalAnimeInput}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+
+                  {aImagen.trim().length > 8 && !aImagen.startsWith("data:") && (
+
+                    <Image
+                      source={{ uri: aImagen.trim() }}
+                      style={s.modalAnimeImgPreview}
+                      resizeMode="cover"
+                    />
+
+                  )}
+
+                </>
 
               )}
 
@@ -1596,6 +1720,59 @@ const s = StyleSheet.create({
     color: "#e5e7eb",
     fontSize: 14,
     lineHeight: 20,
+  },
+
+  // ── image picker ──
+
+  imgToggleRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+  },
+
+  imgToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 14,
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#334155",
+    backgroundColor: "#1e293b",
+  },
+
+  imgToggleTxt: {
+    fontWeight: "700",
+    fontSize: 14,
+    color: "#94a3b8",
+  },
+
+  btnGaleria: {
+    width: "100%",
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: "#334155",
+    borderStyle: "dashed",
+  },
+
+  galeriaPlaceholder: {
+    height: 140,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1e293b",
+    gap: 8,
+  },
+
+  galeriaPlaceholderTxt: {
+    color: "#64748b",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  galeriaImgSelected: {
+    width: "100%",
+    height: 180,
   },
 
   // ── toast ──

@@ -232,12 +232,12 @@ export default function Login() {
       ) {
         setToast({
           tipo: "error",
-          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta,revisa la información porfavor — ¿lo intentamos denuevo? 💭",
+          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta — ¿lo intentamos de nuevo? 💭",
         });
       } else {
         setToast({
           tipo: "error",
-          mensaje: `(>_<)  (╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta  ${msg} — intenta en un momento 🌙`,
+          mensaje: `(>_<)  Algo salió mal: ${msg} — intenta en un momento 🌙`,
         });
       }
 
