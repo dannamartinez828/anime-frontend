@@ -198,6 +198,10 @@ export default function App() {
   const [usuarioId, setUsuarioId] =
     useState<number | null>(null);
 
+  // Nombre del usuario logueado
+  const [nombreUsuario, setNombreUsuario] =
+    useState<string>("");
+
   // ==========================================
   // LOAD
   // ==========================================
@@ -233,6 +237,9 @@ export default function App() {
           const u = JSON.parse(rawDirecto);
           if (u?.id) {
             setUsuarioId(u.id);
+            if (u?.nombre || u?.name || u?.username) {
+              setNombreUsuario(u.nombre || u.name || u.username || "");
+            }
             return;
           }
         } catch {}
@@ -248,6 +255,9 @@ export default function App() {
             const u = JSON.parse(raw);
             if (u?.id) {
               setUsuarioId(u.id);
+              if (u?.nombre || u?.name || u?.username) {
+                setNombreUsuario(u.nombre || u.name || u.username || "");
+              }
               return;
             }
           } catch {}
@@ -741,6 +751,8 @@ export default function App() {
 
       setUsuarioId(null);
 
+      setNombreUsuario("");
+
       setUltimosConsultados(ultimosConsultadosInicial);
 
       showToast(
@@ -1074,6 +1086,12 @@ export default function App() {
           <Text style={styles.animeSeleccionado}>
             🎌 {obtenerNombreAnime()}
           </Text>
+
+          {nombreUsuario ? (
+            <Text style={styles.heroSaludo}>
+              {`ヾ(≧▽≦*)o ¡Hola, ${nombreUsuario}! ✨`}
+            </Text>
+          ) : null}
 
           <Text style={styles.heroTitle}>
             Anime Finder
@@ -1440,6 +1458,15 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 12,
+  },
+
+  heroSaludo: {
+    color: "#fbcfe8",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 8,
+    letterSpacing: 0.3,
+    textAlign: "center",
   },
 
   heroTitle: {

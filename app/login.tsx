@@ -210,9 +210,11 @@ export default function Login() {
       await AsyncStorage.setItem("@token", data.token);
       await AsyncStorage.setItem("@usuario", JSON.stringify(data.user));
 
+      const nombreUsuario = data.user?.nombre || data.user?.name || data.user?.username || "";
+
       setToast({
         tipo: "success",
-        mensaje: "ヾ(≧▽≦*)o  ¡Bienvenid@ de vuelta! Tu sesión se inició correctamente 🌟✨",
+        mensaje: `ヾ(≧▽≦*)o  ¡Bienvenid@ de vuelta${nombreUsuario ? ", " + nombreUsuario : ""}! Tu sesión se inició correctamente 🌟✨`,
       });
 
       setTimeout(() => {
