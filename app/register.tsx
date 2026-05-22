@@ -132,6 +132,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [presionado, setPresionado] = useState(false);
+  const [verPassword, setVerPassword] = useState(false);
 
   const [toast, setToast] = useState<{
     tipo: ToastTipo;
@@ -308,14 +309,28 @@ export default function Register() {
         {/* PASSWORD */}
         <Text style={s.label}>🔒 Contraseña</Text>
 
-        <TextInput
-          placeholder="Crea una contraseña segura ✨"
-          placeholderTextColor="#4b5563"
-          style={s.input}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={s.inputWrapper}>
+
+          <TextInput
+            placeholder="Crea una contraseña segura ✨"
+            placeholderTextColor="#4b5563"
+            style={s.inputInner}
+            secureTextEntry={!verPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          <TouchableOpacity
+            onPress={() => setVerPassword(v => !v)}
+            style={s.ojito}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={s.ojitoTxt}>
+              {verPassword ? "(◕‿◕✿)" : "(＞﹏＜)"}
+            </Text>
+          </TouchableOpacity>
+
+        </View>
 
         {/* BOTÓN CREAR CUENTA */}
         <Animated.View style={{ transform: [{ scale: scaleBtn }], marginTop: 20 }}>
@@ -491,6 +506,38 @@ const s = StyleSheet.create({
     marginBottom: 10,
     lineHeight: 18,
     paddingHorizontal: 4,
+  },
+
+  // ── input con ojito ──
+
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1e293b",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#334155",
+    marginBottom: 6,
+    paddingRight: 4,
+  },
+
+  inputInner: {
+    flex: 1,
+    color: "white",
+    padding: 14,
+    fontSize: 15,
+  },
+
+  ojito: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+
+  ojitoTxt: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#a78bfa",
+    letterSpacing: 0.5,
   },
 
   btnPrincipal: {
