@@ -211,7 +211,7 @@ export default function Login() {
 
       setToast({
         tipo: "success",
-        mensaje: "ヾ(≧▽≦*)o  ¡Bienvenida de vuelta! Tu sesión se inició correctamente 🌟✨",
+        mensaje: "ヾ(≧▽≦*)o  ¡Bienvenid@ de vuelta! Tu sesión se inició correctamente 🌟✨",
       });
 
       setTimeout(() => {
@@ -232,12 +232,12 @@ export default function Login() {
       ) {
         setToast({
           tipo: "error",
-          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta — ¿lo intentamos de nuevo? 💭",
+          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta,revisa la información porfavor — ¿lo intentamos denuevo? 💭",
         });
       } else {
         setToast({
           tipo: "error",
-          mensaje: `(>_<)  Algo salió mal: ${msg} — intenta en un momento 🌙`,
+          mensaje: `(>_<)  (╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta  ${msg} — intenta en un momento 🌙`,
         });
       }
 
