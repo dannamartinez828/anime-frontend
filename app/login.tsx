@@ -1,6 +1,7 @@
 import React, {
   useState,
   useRef,
+  useEffect,
 } from "react";
 
 import {
@@ -132,11 +133,31 @@ export default function Login() {
 
   const router = useRouter();
 
+  // Detectar si es primera vez o usuario que regresa
+  const [esNuevo, setEsNuevo] = useState(true);
+
+  useEffect(() => {
+    async function detectarUsuario() {
+      try {
+        const raw = await AsyncStorage.getItem("@usuario");
+        if (raw && raw !== "undefined" && raw !== "null") {
+          const u = JSON.parse(raw);
+          if (u?.username || u?.nombre) {
+            setNombreGuardado(u.username || u.nombre || "");
+            setEsNuevo(false);
+          }
+        }
+      } catch {}
+    }
+    detectarUsuario();
+  }, []);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [presionado, setPresionado] = useState(false);
   const [verPassword, setVerPassword] = useState(false);
+  const [nombreGuardado, setNombreGuardado] = useState("");
 
   const [toast, setToast] = useState<{
     tipo: ToastTipo;
@@ -210,7 +231,7 @@ export default function Login() {
       await AsyncStorage.setItem("@token", data.token);
       await AsyncStorage.setItem("@usuario", JSON.stringify(data.user));
 
-      const nombreUsuario = data.user?.nombre || data.user?.name || data.user?.username || "";
+      const nombreUsuario = data.user?.username || data.user?.nombre || data.user?.name || "";
 
       setToast({
         tipo: "success",
@@ -266,7 +287,11 @@ export default function Login() {
         <Text style={s.headerEmoji}>✨</Text>
         <Text style={s.headerTitle}>Iniciar sesión</Text>
         <Text style={s.headerSub}>
-          ¡Qué bueno verte! (｡♥‿♥｡)
+          {esNuevo
+            ? "˚₊‧꒰ა 🌸 ໒꒱‧₊˚ ¡Hola! Me alegra que estés aquí (。•̀ᴗ-)✧"
+            : nombreGuardado
+              ? `ヾ(≧▽≦*)o ¡Qué bueno verte de nuevo, ${nombreGuardado}! (｡♥‿♥｡)`
+              : "ヾ(≧▽≦*)o ¡Qué bueno verte de nuevo! (｡♥‿♥｡)"}
         </Text>
       </View>
 
