@@ -449,10 +449,7 @@ export default function Categorias() {
       const permiso = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permiso.granted) {
-        setToast({
-          type: "warning",
-          msg: "Necesito permiso para acceder a tu galería ✨",
-        });
+        showToast("warning", "Necesito permiso para acceder a tu galería ✨");
         return;
       }
 
@@ -460,23 +457,19 @@ export default function Categorias() {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [3, 4],
-        quality: 0.8,
+        quality: 0.3,
         base64: true,
       });
 
       if (!resultado.canceled && resultado.assets[0]) {
         const asset = resultado.assets[0];
-        // Guardamos como base64 data URI para que funcione sin servidor
         const base64 = `data:image/jpeg;base64,${asset.base64}`;
         setAImagen(base64);
       }
 
     } catch (e) {
       console.log("Error galería:", e);
-      setToast({
-        type: "error",
-        msg: "No se pudo abrir la galería — intenta de nuevo 🌸",
-      });
+      showToast("error", "No se pudo abrir la galería — intenta de nuevo 🌸");
     }
 
   }
@@ -1062,7 +1055,7 @@ export default function Categorias() {
 
               </View>
 
-              {/* IMAGEN — selector galería o URL */}
+              {/* URL imagen */}
               <Text style={s.modalAnimeLabel}>🖼️ Imagen del anime</Text>
 
               {/* Toggle galería / URL */}
@@ -1078,10 +1071,9 @@ export default function Categorias() {
                   ]}
                   onPress={() => setModoImagen("galeria")}
                 >
-                  <Text style={[
-                    s.imgToggleTxt,
-                    modoImagen === "galeria" && { color: "white" },
-                  ]}>📱 Galería</Text>
+                  <Text style={[s.imgToggleTxt, modoImagen === "galeria" && { color: "white" }]}>
+                    📱 Galería
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1094,10 +1086,9 @@ export default function Categorias() {
                   ]}
                   onPress={() => setModoImagen("url")}
                 >
-                  <Text style={[
-                    s.imgToggleTxt,
-                    modoImagen === "url" && { color: "white" },
-                  ]}>🔗 URL</Text>
+                  <Text style={[s.imgToggleTxt, modoImagen === "url" && { color: "white" }]}>
+                    🔗 URL
+                  </Text>
                 </TouchableOpacity>
 
               </View>
@@ -1722,59 +1713,6 @@ const s = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // ── image picker ──
-
-  imgToggleRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
-
-  imgToggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 14,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#334155",
-    backgroundColor: "#1e293b",
-  },
-
-  imgToggleTxt: {
-    fontWeight: "700",
-    fontSize: 14,
-    color: "#94a3b8",
-  },
-
-  btnGaleria: {
-    width: "100%",
-    borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 8,
-    borderWidth: 1.5,
-    borderColor: "#334155",
-    borderStyle: "dashed",
-  },
-
-  galeriaPlaceholder: {
-    height: 140,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1e293b",
-    gap: 8,
-  },
-
-  galeriaPlaceholderTxt: {
-    color: "#64748b",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  galeriaImgSelected: {
-    width: "100%",
-    height: 180,
-  },
-
   // ── toast ──
 
   toast: {
@@ -1943,6 +1881,58 @@ const s = StyleSheet.create({
     color: "white",
     fontWeight: "800",
     fontSize: 15,
+  },
+
+  // ── image picker ──
+
+  imgToggleRow: {
+    flexDirection: "row" as const,
+    gap: 10,
+    marginBottom: 12,
+  },
+
+  imgToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 14,
+    alignItems: "center" as const,
+    borderWidth: 1.5,
+    borderColor: "#334155",
+    backgroundColor: "#1e293b",
+  },
+
+  imgToggleTxt: {
+    fontWeight: "700" as const,
+    fontSize: 14,
+    color: "#94a3b8",
+  },
+
+  btnGaleria: {
+    width: "100%" as const,
+    borderRadius: 16,
+    overflow: "hidden" as const,
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: "#334155",
+  },
+
+  galeriaPlaceholder: {
+    height: 140,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    backgroundColor: "#1e293b",
+    gap: 8,
+  },
+
+  galeriaPlaceholderTxt: {
+    color: "#64748b",
+    fontSize: 13,
+    fontWeight: "600" as const,
+  },
+
+  galeriaImgSelected: {
+    width: "100%" as const,
+    height: 180,
   },
 
 });
