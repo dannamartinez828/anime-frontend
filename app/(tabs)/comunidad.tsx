@@ -13,9 +13,12 @@ import {
   Platform,
   ActivityIndicator,
   RefreshControl,
+  Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 import * as ImagePicker from "expo-image-picker";
 import {
   obtenerPosts,
@@ -415,12 +418,8 @@ export default function Comunidad() {
       {/* ══════════════════════════════════════════
           MODAL CREAR POST  (con image picker ✨)
       ══════════════════════════════════════════ */}
-      <Modal visible={modalCrear} animationType="slide" transparent>
-        <KeyboardAvoidingView
-          style={s.modalOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "android" ? 0 : 0}
-        >
+      <Modal visible={modalCrear} animationType="slide" transparent statusBarTranslucent>
+        <View style={s.modalOverlay}>
           <View style={s.modalBox}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitulo}>✍️ Nuevo post</Text>
@@ -542,33 +541,34 @@ export default function Comunidad() {
 
             </ScrollView>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* ── MODAL DETALLE + COMENTARIOS ── */}
-      <Modal visible={modalDetalle} animationType="slide" transparent>
-        <View style={s.modalOverlay}>
-          <View style={[s.modalBox, { maxHeight: "90%" }]}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitulo}>💬 Post</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setModalDetalle(false);
-                  setPostDetalle(null);
-                }}
-              >
-                <Text style={{ color: "#94a3b8", fontSize: 20 }}>✕</Text>
-              </TouchableOpacity>
-            </View>
+      <Modal visible={modalDetalle} animationType="slide" transparent={false} statusBarTranslucent>
+        <View style={s.detalleContainer}>
+          <View style={[s.detalleTopBar]}>
+            <TouchableOpacity
+              style={s.detalleVolverBtn}
+              onPress={() => {
+                setModalDetalle(false);
+                setPostDetalle(null);
+              }}
+            >
+              <Text style={s.detalleVolverTxt}>← Volver</Text>
+            </TouchableOpacity>
+            <Text style={s.modalTitulo}>💬 Post</Text>
+            <View style={{ width: 70 }} />
+          </View>
 
             {cargandoDetalle ? (
               <ActivityIndicator color="#9333ea" style={{ marginVertical: 40 }} />
             ) : postDetalle ? (
               <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
               >
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 20 }}>
                   {/* Post completo */}
                   <View style={s.detalleHeader}>
                     <Avatar
@@ -645,7 +645,6 @@ export default function Comunidad() {
                 </View>
               </KeyboardAvoidingView>
             ) : null}
-          </View>
         </View>
       </Modal>
     </View>
@@ -768,7 +767,7 @@ const s = StyleSheet.create({
     paddingBottom: 40,
     borderWidth: 1,
     borderColor: "#1e293b",
-    maxHeight: "88%",
+    height: SCREEN_HEIGHT * 0.85,
   },
   modalHeader: {
     flexDirection: "row",
@@ -972,5 +971,34 @@ const s = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  // Detalle pantalla completa
+  detalleContainer: {
+    flex: 1,
+    backgroundColor: "#050816",
+  },
+  detalleTopBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === "android" ? 44 : 54,
+    paddingBottom: 14,
+    backgroundColor: "#0f172a",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1e293b",
+  },
+  detalleVolverBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#1e293b",
+    borderRadius: 12,
+    width: 70,
+  },
+  detalleVolverTxt: {
+    color: "#a78bfa",
+    fontWeight: "700",
+    fontSize: 13,
   },
 });
