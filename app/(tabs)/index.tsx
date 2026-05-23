@@ -37,6 +37,8 @@ import {
 import { router } from "expo-router";
 
 import Categorias from "./categorias";
+import Comunidad from "./comunidad";
+import Perfil from "./perfil";
 
 const { width } = Dimensions.get("window");
 
@@ -201,6 +203,10 @@ export default function App() {
   // Nombre del usuario logueado
   const [nombreUsuario, setNombreUsuario] =
     useState<string>("");
+
+  // "comunidad" | "perfil" | null — panel secundario abierto
+  const [panelSecundario, setPanelSecundario] =
+    useState<"comunidad" | "perfil" | null>(null);
 
   // ==========================================
   // LOAD
@@ -1078,6 +1084,48 @@ export default function App() {
         showsVerticalScrollIndicator={false}
       >
 
+        {/* ── KAWAII BAR: Comunidad y Perfil arriba, fuera del tab bar ── */}
+        <View style={styles.kawaiiBar}>
+
+          {/* Botón Comunidad — izquierda */}
+          <TouchableOpacity
+            style={styles.kawaiiBtn}
+            onPress={() => setPanelSecundario("comunidad")}
+            activeOpacity={0.8}
+          >
+            <LinearGradient colors={["#7c3aed", "#db2777"]} style={styles.kawaiiBtnGrad}>
+              <Text style={styles.kawaiiFace}>(◕‿◕✿)</Text>
+              <Text style={styles.kawaiiLabel}>Comunidad</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Centro — saludo kawaii */}
+          <View style={styles.kawaiiCenter}>
+            {nombreUsuario ? (
+              <Text style={styles.kawaiiSaludo}>
+                {`ヾ(＾∇＾)\n¡Hola ${nombreUsuario}!`}
+              </Text>
+            ) : (
+              <Text style={styles.kawaiiSaludo}>
+                {`(ﾉ◕ヮ◕)ﾉ\n*:･ﾟ✧`}
+              </Text>
+            )}
+          </View>
+
+          {/* Botón Perfil — derecha */}
+          <TouchableOpacity
+            style={styles.kawaiiBtn}
+            onPress={() => setPanelSecundario("perfil")}
+            activeOpacity={0.8}
+          >
+            <LinearGradient colors={["#0ea5e9", "#6366f1"]} style={styles.kawaiiBtnGrad}>
+              <Text style={styles.kawaiiFace}>(｡♥‿♥｡)</Text>
+              <Text style={styles.kawaiiLabel}>Mi Perfil</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+        </View>
+
         <LinearGradient
           colors={obtenerColoresHero()}
           style={styles.hero}
@@ -1305,7 +1353,7 @@ export default function App() {
 
       )}
 
-      {/* MODAL */}
+      {/* MODAL GALERÍA */}
 
       <Modal
         visible={modalVisible}
@@ -1364,6 +1412,56 @@ export default function App() {
             </TouchableOpacity>
 
           </LinearGradient>
+
+        </View>
+
+      </Modal>
+
+      {/* MODAL PANEL: COMUNIDAD */}
+
+      <Modal
+        visible={panelSecundario === "comunidad"}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setPanelSecundario(null)}
+      >
+
+        <View style={styles.panelSecundario}>
+
+          <TouchableOpacity
+            style={styles.volverBtn}
+            onPress={() => setPanelSecundario(null)}
+          >
+            <Text style={styles.volverEmoji}>(｡•́‿•̀｡)</Text>
+            <Text style={styles.volverTxt}>← Volver</Text>
+          </TouchableOpacity>
+
+          <Comunidad />
+
+        </View>
+
+      </Modal>
+
+      {/* MODAL PANEL: PERFIL */}
+
+      <Modal
+        visible={panelSecundario === "perfil"}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setPanelSecundario(null)}
+      >
+
+        <View style={styles.panelSecundario}>
+
+          <TouchableOpacity
+            style={styles.volverBtn}
+            onPress={() => setPanelSecundario(null)}
+          >
+            <Text style={styles.volverEmoji}>(ﾉ◕ヮ◕)ﾉ</Text>
+            <Text style={styles.volverTxt}>← Volver</Text>
+          </TouchableOpacity>
+
+          <Perfil />
 
         </View>
 
@@ -1444,6 +1542,94 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#050816",
   },
+
+  // ── KAWAII BAR (Comunidad + Perfil) ──
+
+  kawaiiBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingTop: Platform.OS === "ios" ? 54 : 18,
+    paddingBottom: 10,
+    gap: 8,
+  },
+
+  kawaiiBtn: {
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#9333ea",
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+
+  kawaiiBtnGrad: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    borderRadius: 20,
+    minWidth: 90,
+  },
+
+  kawaiiFace: {
+    fontSize: 16,
+    color: "white",
+    marginBottom: 2,
+  },
+
+  kawaiiLabel: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+
+  kawaiiCenter: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  kawaiiSaludo: {
+    color: "#f9a8d4",
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 17,
+  },
+
+  // ── PANEL SECUNDARIO ──
+
+  panelSecundario: {
+    flex: 1,
+    backgroundColor: "#050816",
+  },
+
+  volverBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === "ios" ? 54 : 18,
+    paddingBottom: 10,
+    backgroundColor: "#0f172a",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1e293b",
+  },
+
+  volverEmoji: {
+    fontSize: 18,
+    color: "#f9a8d4",
+  },
+
+  volverTxt: {
+    color: "#a78bfa",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+
+  // ── HERO ──
 
   hero: {
     marginHorizontal: 18,
