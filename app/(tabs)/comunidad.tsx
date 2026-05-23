@@ -15,13 +15,7 @@ import {
   RefreshControl,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import * as ImagePicker from "expo-image-picker";
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
 import {
   obtenerPosts,
   obtenerPost,
@@ -182,14 +176,8 @@ export default function Comunidad() {
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
   const [imagenUrl, setImagenUrl] = useState("");
-<<<<<<< HEAD
-<<<<<<< HEAD
   const [imagenLocal, setImagenLocal] = useState<string | null>(null); // URI local elegida con picker
   const [modoImagen, setModoImagen] = useState<"url" | "galeria">("galeria"); // qué modo está activo
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
   const [creando, setCreando] = useState(false);
 
   // Modal detalle post
@@ -238,8 +226,6 @@ export default function Comunidad() {
     setCargandoDetalle(false);
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
   // ─────────────────────────────────────────
   // IMAGE PICKER — abrir galería del dispositivo
   // ─────────────────────────────────────────
@@ -289,16 +275,10 @@ export default function Comunidad() {
   // CREAR POST
   // ─────────────────────────────────────────
 
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
   async function handleCrearPost() {
     if (!titulo.trim() || !contenido.trim()) return;
     setCreando(true);
     try {
-<<<<<<< HEAD
-<<<<<<< HEAD
       const urlFinal = imagenUrl.trim() || undefined;
       await crearPost(titulo.trim(), contenido.trim(), urlFinal);
       setTitulo("");
@@ -306,17 +286,6 @@ export default function Comunidad() {
       setImagenUrl("");
       setImagenLocal(null);
       setModoImagen("galeria");
-=======
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-      await crearPost(titulo.trim(), contenido.trim(), imagenUrl.trim() || undefined);
-      setTitulo("");
-      setContenido("");
-      setImagenUrl("");
-<<<<<<< HEAD
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
       setModalCrear(false);
       await cargarPosts();
     } catch (e: any) {
@@ -441,17 +410,9 @@ export default function Comunidad() {
         )}
       />
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       {/* ══════════════════════════════════════════
           MODAL CREAR POST  (con image picker ✨)
       ══════════════════════════════════════════ */}
-=======
-      {/* ── MODAL CREAR POST ── */}
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
-      {/* ── MODAL CREAR POST ── */}
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
       <Modal visible={modalCrear} animationType="slide" transparent>
         <KeyboardAvoidingView
           style={s.modalOverlay}
@@ -460,8 +421,6 @@ export default function Comunidad() {
           <View style={s.modalBox}>
             <View style={s.modalHeader}>
               <Text style={s.modalTitulo}>✍️ Nuevo post</Text>
-<<<<<<< HEAD
-<<<<<<< HEAD
               <TouchableOpacity
                 onPress={() => {
                   setModalCrear(false);
@@ -469,12 +428,6 @@ export default function Comunidad() {
                   setModoImagen("galeria");
                 }}
               >
-=======
-              <TouchableOpacity onPress={() => setModalCrear(false)}>
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
-              <TouchableOpacity onPress={() => setModalCrear(false)}>
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
                 <Text style={{ color: "#94a3b8", fontSize: 20 }}>✕</Text>
               </TouchableOpacity>
             </View>
@@ -490,15 +443,7 @@ export default function Comunidad() {
 
             <Text style={s.label}>Contenido</Text>
             <TextInput
-<<<<<<< HEAD
-<<<<<<< HEAD
               style={[s.input, { height: 90, textAlignVertical: "top" }]}
-=======
-              style={[s.input, { height: 100, textAlignVertical: "top" }]}
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
-              style={[s.input, { height: 100, textAlignVertical: "top" }]}
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
               placeholder="¿Qué quieres compartir? ✨"
               placeholderTextColor="#4b5563"
               value={contenido}
@@ -506,8 +451,6 @@ export default function Comunidad() {
               multiline
             />
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             {/* ─── SECCIÓN IMAGEN ─── */}
             <Text style={s.label}>Imagen (opcional)</Text>
 
@@ -582,22 +525,6 @@ export default function Comunidad() {
                 resizeMode="cover"
               />
             )}
-=======
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-            <Text style={s.label}>Imagen (URL opcional)</Text>
-            <TextInput
-              style={s.input}
-              placeholder="https://..."
-              placeholderTextColor="#4b5563"
-              value={imagenUrl}
-              onChangeText={setImagenUrl}
-              autoCapitalize="none"
-            />
-<<<<<<< HEAD
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
 
             <TouchableOpacity
               style={[s.btnPublicar, creando && { opacity: 0.6 }]}
@@ -864,8 +791,6 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#334155",
   },
-<<<<<<< HEAD
-<<<<<<< HEAD
 
   // Toggle URL / Galería
   toggleRow: {
@@ -945,10 +870,6 @@ const s = StyleSheet.create({
     fontSize: 13,
   },
 
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
-=======
->>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
   btnPublicar: {
     backgroundColor: "#9333ea",
     paddingVertical: 14,
