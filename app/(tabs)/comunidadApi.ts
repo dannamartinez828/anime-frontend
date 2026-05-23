@@ -1,9 +1,22 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// Sin barra al final — evita el doble slash que causa HTML de error
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 async function getToken() {
   return await AsyncStorage.getItem("@token");
+}
+
+// Parseo seguro — evita "Unexpected token '<'" cuando el server devuelve HTML
+async function safeJson(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      `El servidor devolvió una respuesta inesperada (${res.status}). Verifica que el backend esté activo.`
+    );
+  }
 }
 
 // =============================================
@@ -11,15 +24,21 @@ async function getToken() {
 // =============================================
 
 export async function obtenerPosts() {
-  const res = await fetch(`${BASE_URL}/posts`);
-  const data = await res.json();
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/posts`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al obtener posts");
   return data;
 }
 
 export async function obtenerPost(id: number) {
-  const res = await fetch(`${BASE_URL}/posts/${id}`);
-  const data = await res.json();
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/posts/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al obtener post");
   return data;
 }
@@ -38,7 +57,7 @@ export async function crearPost(
     },
     body: JSON.stringify({ titulo, contenido, imagen_url }),
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al crear post");
   return data;
 }
@@ -49,7 +68,7 @@ export async function eliminarPost(id: number) {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al eliminar post");
   return data;
 }
@@ -57,6 +76,16 @@ export async function eliminarPost(id: number) {
 // =============================================
 // COMENTARIOS
 // =============================================
+
+export async function obtenerComentarios(postId: number) {
+  const token = await getToken();
+  const res = await fetch(`${BASE_URL}/posts/${postId}/comentarios`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await safeJson(res);
+  if (!res.ok) throw new Error(data.error || "Error al obtener comentarios");
+  return data;
+}
 
 export async function comentar(postId: number, contenido: string) {
   const token = await getToken();
@@ -68,7 +97,7 @@ export async function comentar(postId: number, contenido: string) {
     },
     body: JSON.stringify({ contenido }),
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al comentar");
   return data;
 }
@@ -82,7 +111,7 @@ export async function eliminarComentario(postId: number, comentarioId: number) {
       headers: { Authorization: `Bearer ${token}` },
     }
   );
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al eliminar comentario");
   return data;
 }
@@ -96,7 +125,7 @@ export async function obtenerPerfil() {
   const res = await fetch(`${BASE_URL}/perfil`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al obtener perfil");
   return data;
 }
@@ -114,7 +143,7 @@ export async function actualizarPerfil(datos: {
     },
     body: JSON.stringify(datos),
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Error al actualizar perfil");
   return data;
 }

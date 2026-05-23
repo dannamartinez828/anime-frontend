@@ -40,13 +40,42 @@ export default function Perfil() {
   }, []);
 
   async function cargar() {
+    // Primero cargar desde AsyncStorage para mostrar datos rápido
+    try {
+      const raw = await AsyncStorage.getItem("@usuario");
+      if (raw && raw !== "undefined" && raw !== "null") {
+        const u = JSON.parse(raw);
+        if (u?.username) setUsername(u.username);
+        if (u?.email) setEmail(u.email);
+        if (u?.foto_perfil) {
+          setFotoPerfil(u.foto_perfil);
+          setFotoUrl(u.foto_perfil);
+        }
+      }
+    } catch {}
+
+    // Luego sincronizar con el backend
     try {
       const data = await obtenerPerfil();
       setUsername(data.username || "");
       setEmail(data.email || "");
       setFotoPerfil(data.foto_perfil || "");
       setFotoUrl(data.foto_perfil || "");
-    } catch {}
+
+      // Actualizar AsyncStorage con datos frescos del backend
+      const raw = await AsyncStorage.getItem("@usuario");
+      if (raw && raw !== "undefined") {
+        const u = JSON.parse(raw);
+        await AsyncStorage.setItem("@usuario", JSON.stringify({
+          ...u,
+          username: data.username,
+          foto_perfil: data.foto_perfil,
+        }));
+      }
+    } catch (e: any) {
+      // Si falla el backend mostramos lo de AsyncStorage igual
+      console.log("Error cargando perfil del backend:", e.message);
+    }
     setCargando(false);
   }
 
