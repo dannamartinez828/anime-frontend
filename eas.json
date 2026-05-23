@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 19.0.8",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+<<<<<<< HEAD
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+=======
+      "distribution": "internal"
+>>>>>>> 0ffd2af3d9789fb1c0d651c40eea09227844c40f
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
