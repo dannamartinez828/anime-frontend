@@ -245,23 +245,36 @@ export default function Login() {
     } catch (err: any) {
 
       const msg: string = err.message || "";
+      const msgLow = msg.toLowerCase();
 
       if (
-        msg.toLowerCase().includes("no encontrado") ||
-        msg.toLowerCase().includes("not found") ||
-        msg.toLowerCase().includes("invalid") ||
-        msg.toLowerCase().includes("incorrect") ||
-        msg.toLowerCase().includes("credenciales") ||
-        msg.toLowerCase().includes("wrong")
+        msgLow.includes("no existe") ||
+        msgLow.includes("not found") ||
+        msgLow.includes("no encontrado") ||
+        msgLow.includes("esta cuenta") ||
+        msgLow.includes("invalid") ||
+        msgLow.includes("wrong") ||
+        msgLow.includes("credenciales") ||
+        msgLow.includes("contraseña incorrecta") ||
+        msgLow.includes("incorrect")
       ) {
         setToast({
           tipo: "error",
-          mensaje: "(╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta,revisa la información porfavor — ¿lo intentamos denuevo? 💭",
+          mensaje: "(╥_╥)  Hmm, esa cuenta no existe o la contraseña no es correcta — ¿lo intentamos de nuevo? 💭",
+        });
+      } else if (
+        msgLow.includes("network") ||
+        msgLow.includes("fetch") ||
+        msgLow.includes("failed")
+      ) {
+        setToast({
+          tipo: "error",
+          mensaje: "(>_<)  No pude conectarme al servidor — revisa tu internet e intenta de nuevo 🌙",
         });
       } else {
         setToast({
           tipo: "error",
-          mensaje: `(>_<)  (╥_╥)  Hmm, no encontré esa cuenta o la contraseña no es correcta  ${msg} — intenta en un momento 🌙`,
+          mensaje: `(>_<)  Algo salió mal: ${msg} — intenta en un momento 🌙`,
         });
       }
 

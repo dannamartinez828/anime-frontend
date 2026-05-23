@@ -222,17 +222,39 @@ export default function Register() {
     } catch (err: any) {
 
       const msg: string = err.message || "";
+      const msgLow = msg.toLowerCase();
 
       if (
-        msg.toLowerCase().includes("existe") ||
-        msg.toLowerCase().includes("already") ||
-        msg.toLowerCase().includes("duplicate") ||
-        msg.toLowerCase().includes("registrado") ||
-        msg.toLowerCase().includes("taken")
+        msgLow.includes("correo ya está") ||
+        msgLow.includes("correo ya esta") ||
+        msgLow.includes("email ya") ||
+        msgLow.includes("existe") ||
+        msgLow.includes("already") ||
+        msgLow.includes("duplicate") ||
+        msgLow.includes("registrado") ||
+        msgLow.includes("taken")
       ) {
         setToast({
           tipo: "error",
           mensaje: "(╥_╥)  ¡Ese correo ya tiene una cuenta! — ¿Ya eres de los nuestros? Ve al login 🌙💫",
+        });
+      } else if (
+        msgLow.includes("nombre de usuario") ||
+        msgLow.includes("username") ||
+        msgLow.includes("usuario ya")
+      ) {
+        setToast({
+          tipo: "error",
+          mensaje: "˚₊‧꒰ა 🌸 ໒꒱‧₊˚  Ese nombre de usuario ya lo usa alguien — ¡elige otro más especial! ✨",
+        });
+      } else if (
+        msgLow.includes("network") ||
+        msgLow.includes("fetch") ||
+        msgLow.includes("failed")
+      ) {
+        setToast({
+          tipo: "error",
+          mensaje: "(>_<)  No pude conectarme al servidor — revisa tu internet e intenta de nuevo 🌙",
         });
       } else {
         setToast({
