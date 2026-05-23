@@ -15,6 +15,7 @@ import {
   RefreshControl,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import {
   obtenerPosts,
@@ -166,6 +167,7 @@ function PostCard({
 // =============================================
 
 export default function Comunidad() {
+  const insets = useSafeAreaInsets();
   const [posts, setPosts] = useState<Post[]>([]);
   const [miId, setMiId] = useState<number>(0);
   const [cargando, setCargando] = useState(true);
@@ -363,7 +365,7 @@ export default function Comunidad() {
   return (
     <View style={s.container}>
       {/* Header */}
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: Math.max(insets.top + 12, 24) }]}>
         <View>
           <Text style={s.headerTitle}>✨ Comunidad</Text>
           <Text style={s.headerSub}>Comparte tu amor por el anime</Text>
@@ -416,7 +418,8 @@ export default function Comunidad() {
       <Modal visible={modalCrear} animationType="slide" transparent>
         <KeyboardAvoidingView
           style={s.modalOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "android" ? 0 : 0}
         >
           <View style={s.modalBox}>
             <View style={s.modalHeader}>
@@ -431,6 +434,7 @@ export default function Comunidad() {
                 <Text style={{ color: "#94a3b8", fontSize: 20 }}>✕</Text>
               </TouchableOpacity>
             </View>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
             <Text style={s.label}>Título</Text>
             <TextInput
@@ -535,6 +539,8 @@ export default function Comunidad() {
                 {creando ? "Publicando..." : "🚀 Publicar"}
               </Text>
             </TouchableOpacity>
+
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -660,7 +666,6 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
-    paddingTop: 56,
     borderBottomWidth: 1,
     borderBottomColor: "#1e293b",
   },
@@ -760,8 +765,10 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 24,
+    paddingBottom: 40,
     borderWidth: 1,
     borderColor: "#1e293b",
+    maxHeight: "88%",
   },
   modalHeader: {
     flexDirection: "row",
